@@ -1,13 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { FileText, Loader2, Save, Star, Lightbulb, CheckCircle, Edit2, Trash2 } from "lucide-react";
+import { FileText, Loader2, Star, Lightbulb } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
 
 interface STARAnswer {
   situation: string;
@@ -24,51 +23,12 @@ interface STARQuestion {
   category: string;
 }
 
-interface SavedAnswer {
-  id: string;
-  question: string;
-  situation: string | null;
-  task: string | null;
-  action: string | null;
-  result: string | null;
-  keywords: string[] | null;
-  job_description: string;
-}
-
 export const STARInterviewPrep = () => {
-  const { user } = useAuth();
   const [jobDescription, setJobDescription] = useState("");
   const [questions, setQuestions] = useState<STARQuestion[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [started, setStarted] = useState(false);
   const [answers, setAnswers] = useState<Record<number, STARAnswer>>({});
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [savedAnswers, setSavedAnswers] = useState<SavedAnswer[]>([]);
-  const [savingId, setSavingId] = useState<number | null>(null);
-  const [showSaved, setShowSaved] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      fetchSavedAnswers();
-    }
-  }, [user]);
-
-  const fetchSavedAnswers = async () => {
-    if (!user) return;
-    
-    const { data, error } = await supabase
-      .from("star_interview_answers")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching saved answers:", error);
-      return;
-    }
-
-    setSavedAnswers(data || []);
-  };
 
   const handleGenerateQuestions = async () => {
     if (jobDescription.trim().length < 50) {
@@ -95,7 +55,6 @@ export const STARInterviewPrep = () => {
 
       if (data.questions && data.questions.length > 0) {
         setQuestions(data.questions);
-        // Initialize answers with sample answers
         const initialAnswers: Record<number, STARAnswer> = {};
         data.questions.forEach((q: STARQuestion) => {
           initialAnswers[q.id] = { situation: "", task: "", action: "", result: "" };
@@ -124,83 +83,6 @@ export const STARInterviewPrep = () => {
     }));
   };
 
-  const handleSaveAnswer = async (question: STARQuestion) => {
-    if (!user) {
-      toast.error("Please sign in to save your answers");
-      return;
-    }
-
-    const answer = answers[question.id];
-    if (!answer.situation && !answer.task && !answer.action && !answer.result) {
-      toast.error("Please fill in at least one STAR field before saving");
-      return;
-    }
-
-    setSavingId(question.id);
-    try {
-      const { error } = await supabase.from("star_interview_answers").insert({
-        user_id: user.id,
-        job_description: jobDescription,
-        question: question.question,
-        situation: answer.situation || null,
-        task: answer.task || null,
-        action: answer.action || null,
-        result: answer.result || null,
-        keywords: question.keywords
-      });
-
-      if (error) {
-        console.error("Error saving answer:", error);
-        toast.error("Failed to save answer");
-        return;
-      }
-
-      toast.success("Answer saved successfully!");
-      fetchSavedAnswers();
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error("Failed to save answer");
-    } finally {
-      setSavingId(null);
-    }
-  };
-
-  const handleDeleteSaved = async (id: string) => {
-    const { error } = await supabase
-      .from("star_interview_answers")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      toast.error("Failed to delete answer");
-      return;
-    }
-
-    toast.success("Answer deleted");
-    fetchSavedAnswers();
-  };
-
-  const handleUpdateSaved = async (saved: SavedAnswer) => {
-    const { error } = await supabase
-      .from("star_interview_answers")
-      .update({
-        situation: saved.situation,
-        task: saved.task,
-        action: saved.action,
-        result: saved.result
-      })
-      .eq("id", saved.id);
-
-    if (error) {
-      toast.error("Failed to update answer");
-      return;
-    }
-
-    toast.success("Answer updated!");
-    setEditingId(null);
-    fetchSavedAnswers();
-  };
-
   const handleReset = () => {
     setStarted(false);
     setJobDescription("");
@@ -221,137 +103,47 @@ export const STARInterviewPrep = () => {
           </p>
         </div>
 
-        <div className="mx-auto max-w-3xl flex gap-2 justify-center">
-          <Button 
-            variant={!showSaved ? "default" : "outline"} 
-            onClick={() => setShowSaved(false)}
-          >
-            New Questions
-          </Button>
-          <Button 
-            variant={showSaved ? "default" : "outline"} 
-            onClick={() => setShowSaved(true)}
-          >
-            Saved Answers ({savedAnswers.length})
-          </Button>
-        </div>
+        <Card className="mx-auto max-w-3xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Paste Job Description
+            </CardTitle>
+            <CardDescription>
+              AI will generate behavioral interview questions tailored to the role
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Textarea
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              placeholder="Paste the full job description here... Include responsibilities, requirements, and qualifications for best results."
+              className="min-h-[200px]"
+            />
+            
+            <p className="text-sm text-muted-foreground">
+              {jobDescription.length} characters {jobDescription.length < 50 && "(minimum 50 required)"}
+            </p>
 
-        {showSaved ? (
-          <div className="mx-auto max-w-3xl space-y-4">
-            {savedAnswers.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  No saved answers yet. Generate questions and save your STAR responses!
-                </CardContent>
-              </Card>
-            ) : (
-              savedAnswers.map((saved) => (
-                <Card key={saved.id}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-base">{saved.question}</CardTitle>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setEditingId(editingId === Number(saved.id) ? null : Number(saved.id))}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteSaved(saved.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                    {saved.keywords && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {saved.keywords.map((kw, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">{kw}</Badge>
-                        ))}
-                      </div>
-                    )}
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {editingId === Number(saved.id) ? (
-                      <>
-                        {["situation", "task", "action", "result"].map((field) => (
-                          <div key={field}>
-                            <label className="text-sm font-medium capitalize text-muted-foreground">{field}</label>
-                            <Textarea
-                              value={(saved as any)[field] || ""}
-                              onChange={(e) => {
-                                const updated = { ...saved, [field]: e.target.value };
-                                setSavedAnswers(prev => prev.map(s => s.id === saved.id ? updated : s));
-                              }}
-                              className="mt-1"
-                              rows={2}
-                            />
-                          </div>
-                        ))}
-                        <Button onClick={() => handleUpdateSaved(saved)} className="w-full">
-                          <Save className="mr-2 h-4 w-4" /> Save Changes
-                        </Button>
-                      </>
-                    ) : (
-                      <div className="grid gap-2 text-sm">
-                        {saved.situation && <p><span className="font-medium text-primary">Situation:</span> {saved.situation}</p>}
-                        {saved.task && <p><span className="font-medium text-primary">Task:</span> {saved.task}</p>}
-                        {saved.action && <p><span className="font-medium text-primary">Action:</span> {saved.action}</p>}
-                        {saved.result && <p><span className="font-medium text-primary">Result:</span> {saved.result}</p>}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-        ) : (
-          <Card className="mx-auto max-w-3xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Paste Job Description
-              </CardTitle>
-              <CardDescription>
-                AI will generate behavioral interview questions tailored to the role
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                placeholder="Paste the full job description here... Include responsibilities, requirements, and qualifications for best results."
-                className="min-h-[200px]"
-              />
-              
-              <p className="text-sm text-muted-foreground">
-                {jobDescription.length} characters {jobDescription.length < 50 && "(minimum 50 required)"}
-              </p>
-
-              <Button 
-                onClick={handleGenerateQuestions} 
-                disabled={jobDescription.trim().length < 50 || isGenerating}
-                className="w-full"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating STAR Questions...
-                  </>
-                ) : (
-                  <>
-                    <Star className="mr-2 h-4 w-4" />
-                    Generate STAR Questions
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+            <Button 
+              onClick={handleGenerateQuestions} 
+              disabled={jobDescription.trim().length < 50 || isGenerating}
+              className="w-full"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating STAR Questions...
+                </>
+              ) : (
+                <>
+                  <Star className="mr-2 h-4 w-4" />
+                  Generate STAR Questions
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -453,20 +245,6 @@ export const STARInterviewPrep = () => {
                     </div>
                   ))}
                 </div>
-
-                {/* Save Button */}
-                <Button 
-                  onClick={() => handleSaveAnswer(q)} 
-                  disabled={savingId === q.id || !user}
-                  className="w-full"
-                >
-                  {savingId === q.id ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="mr-2 h-4 w-4" />
-                  )}
-                  {user ? "Save Answer" : "Sign in to Save"}
-                </Button>
               </AccordionContent>
             </AccordionItem>
           ))}
