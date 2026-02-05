@@ -83,6 +83,48 @@ export type Database = {
         }
         Relationships: []
       }
+      star_interview_answers: {
+        Row: {
+          action: string | null
+          created_at: string
+          id: string
+          job_description: string
+          keywords: string[] | null
+          question: string
+          result: string | null
+          situation: string | null
+          task: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action?: string | null
+          created_at?: string
+          id?: string
+          job_description: string
+          keywords?: string[] | null
+          question: string
+          result?: string | null
+          situation?: string | null
+          task?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action?: string | null
+          created_at?: string
+          id?: string
+          job_description?: string
+          keywords?: string[] | null
+          question?: string
+          result?: string | null
+          situation?: string | null
+          task?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
