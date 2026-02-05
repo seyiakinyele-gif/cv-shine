@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { CVInput } from "@/components/CVInput";
 import { JobDescriptionInput } from "@/components/JobDescriptionInput";
 import { ResultsDisplay } from "@/components/ResultsDisplay";
@@ -6,9 +7,16 @@ import { CVTemplatePreview } from "@/components/CVTemplatePreview";
 import { InterviewPrep } from "@/components/InterviewPrep";
 import { JobTracker } from "@/components/JobTracker";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, FileText, BookOpen, Briefcase } from "lucide-react";
+import { Sparkles, Loader2, FileText, BookOpen, Briefcase, LogIn, LogOut, User } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface OptimizationResult {
   score: number;
@@ -35,6 +43,12 @@ const Index = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<OptimizationResult | null>(null);
   const [currentView, setCurrentView] = useState<View>("optimizer");
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out successfully");
+  };
 
   const readFileContent = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -110,7 +124,7 @@ const Index = () => {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <Sparkles className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-semibold text-foreground">Seyidanielsdesigns CV Guide</span>
+            <span className="hidden font-semibold text-foreground sm:inline">Seyidanielsdesigns CV Guide</span>
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
             <Button
@@ -148,6 +162,34 @@ const Index = () => {
               <Briefcase className="mr-1.5 h-3.5 w-3.5" />
               <span className="hidden sm:inline">Tracker</span>
             </Button>
+            
+            <div className="ml-2 border-l border-border pl-2">
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <User className="mr-1.5 h-3.5 w-3.5" />
+                      <span className="hidden sm:inline max-w-[100px] truncate">
+                        {user.email}
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/auth">
+                    <LogIn className="mr-1.5 h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Sign In</span>
+                  </Link>
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </header>
