@@ -384,24 +384,29 @@ export const JobTracker = ({ jobs, onJobAdded, onJobUpdated, onJobDeleted, onRev
                         {job.workflowData && onReviewJob && (
                           <Button
                             variant="ghost"
-                            size="icon"
+                            size="sm"
                             onClick={() => onReviewJob(job)}
                             title="Review workflow"
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-4 w-4 mr-1" />
+                            <span className="hidden sm:inline">Review</span>
                           </Button>
                         )}
                         <Button
-                          variant="ghost"
-                          size="icon"
+                          variant="outline"
+                          size="sm"
                           onClick={() => handleOpenDialog(job)}
+                          title="Edit application"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-4 w-4 mr-1" />
+                          <span className="hidden sm:inline">Edit</span>
                         </Button>
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="sm"
                           onClick={() => handleDelete(job.id)}
+                          title="Delete application"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
