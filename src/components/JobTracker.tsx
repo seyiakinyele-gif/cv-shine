@@ -51,8 +51,14 @@ const statusConfig = {
   rejected: { label: "Rejected", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" },
 };
 
-export const JobTracker = () => {
-  const [jobs, setJobs] = useState<JobApplication[]>([]);
+interface JobTrackerProps {
+  jobs: JobApplication[];
+  onJobAdded: (job: JobApplication) => void;
+  onJobUpdated: (job: JobApplication) => void;
+  onJobDeleted: (jobId: string) => void;
+}
+
+export const JobTracker = ({ jobs, onJobAdded, onJobUpdated, onJobDeleted }: JobTrackerProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<JobApplication | null>(null);
   const [formData, setFormData] = useState({
@@ -105,11 +111,14 @@ export const JobTracker = () => {
     }
 
     if (editingJob) {
-      setJobs(jobs.map(job => 
-        job.id === editingJob.id 
-          ? { ...job, ...formData, link: formData.link || undefined, notes: formData.notes || undefined, salary: formData.salary || undefined }
-          : job
-      ));
+      const updatedJob: JobApplication = {
+        ...editingJob,
+        ...formData,
+        link: formData.link || undefined,
+        notes: formData.notes || undefined,
+        salary: formData.salary || undefined,
+      };
+      onJobUpdated(updatedJob);
       toast.success("Job application updated");
     } else {
       const newJob: JobApplication = {
@@ -122,7 +131,7 @@ export const JobTracker = () => {
         notes: formData.notes || undefined,
         salary: formData.salary || undefined,
       };
-      setJobs([newJob, ...jobs]);
+      onJobAdded(newJob);
       toast.success("Job application added");
     }
 
@@ -131,13 +140,16 @@ export const JobTracker = () => {
   };
 
   const handleDelete = (id: string) => {
-    setJobs(jobs.filter(job => job.id !== id));
+    onJobDeleted(id);
     toast.success("Job application removed");
   };
 
   const handleStatusChange = (id: string, status: JobApplication["status"]) => {
-    setJobs(jobs.map(job => job.id === id ? { ...job, status } : job));
-    toast.success("Status updated");
+    const job = jobs.find(j => j.id === id);
+    if (job) {
+      onJobUpdated({ ...job, status });
+      toast.success("Status updated");
+    }
   };
 
   const stats = {

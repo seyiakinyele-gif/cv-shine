@@ -1,119 +1,46 @@
 import { useState } from "react";
-import { CVInput } from "@/components/CVInput";
-import { JobDescriptionInput } from "@/components/JobDescriptionInput";
-import { ResultsDisplay } from "@/components/ResultsDisplay";
-import { CVTemplatePreview } from "@/components/CVTemplatePreview";
+import { WorkflowWizard } from "@/components/WorkflowWizard";
+import { JobTracker } from "@/components/JobTracker";
 import { InterviewPrep } from "@/components/InterviewPrep";
 import { STARInterviewPrep } from "@/components/STARInterviewPrep";
-import { JobTracker } from "@/components/JobTracker";
+import { CVTemplatePreview } from "@/components/CVTemplatePreview";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, FileText, BookOpen, Briefcase, Star } from "lucide-react";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { Sparkles, FileText, BookOpen, Briefcase, Star, Workflow } from "lucide-react";
 
-interface OptimizationResult {
-  score: number;
-  optimizedContent: string;
-  suggestions: {
-    type: "success" | "warning" | "info";
-    title: string;
-    description: string;
-  }[];
-  keywords: {
-    found: string[];
-    missing: string[];
-  };
+interface TrackedJob {
+  id: string;
+  company: string;
+  position: string;
+  status: "applied" | "screening" | "interview" | "offer" | "rejected";
+  date_applied: string;
+  link?: string;
+  notes?: string;
+  salary?: string;
 }
 
-type View = "optimizer" | "templates" | "interview" | "star" | "tracker";
-type InputMode = "file" | "text";
+type View = "workflow" | "templates" | "quiz" | "star" | "tracker";
 
 const Index = () => {
-  const [file, setFile] = useState<File | null>(null);
-  const [cvText, setCvText] = useState("");
-  const [inputMode, setInputMode] = useState<InputMode>("file");
-  const [jobDescription, setJobDescription] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [result, setResult] = useState<OptimizationResult | null>(null);
-  const [currentView, setCurrentView] = useState<View>("optimizer");
-  const [optimizedCvForTemplates, setOptimizedCvForTemplates] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<View>("workflow");
+  const [trackedJobs, setTrackedJobs] = useState<TrackedJob[]>([]);
 
-  const handleUseInTemplates = (content: string) => {
-    setOptimizedCvForTemplates(content);
-    setCurrentView("templates");
-    toast.success("Optimized CV loaded into Templates");
+  const handleJobAdded = (job: TrackedJob) => {
+    setTrackedJobs(prev => [job, ...prev]);
   };
 
-  const readFileContent = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target?.result as string);
-      reader.onerror = reject;
-      reader.readAsText(file);
-    });
+  const handleJobUpdated = (updatedJob: TrackedJob) => {
+    setTrackedJobs(prev => prev.map(job => job.id === updatedJob.id ? updatedJob : job));
   };
 
-  const getCvContent = async (): Promise<string> => {
-    if (inputMode === "text") {
-      return cvText;
-    }
-    if (file) {
-      return await readFileContent(file);
-    }
-    return "";
-  };
-
-  const hasValidCv = inputMode === "file" ? !!file : cvText.trim().length > 0;
-
-  const handleAnalyze = async () => {
-    if (!hasValidCv || !jobDescription.trim()) {
-      toast.error("Please provide a CV and enter a job description");
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setResult(null);
-
-    try {
-      const cvContent = await getCvContent();
-
-      const { data, error } = await supabase.functions.invoke("optimize-cv", {
-        body: { cvContent, jobDescription },
-      });
-
-      if (error) {
-        console.error("Error:", error);
-        toast.error(error.message || "Failed to analyse CV");
-        return;
-      }
-
-      if (data.error) {
-        toast.error(data.error);
-        return;
-      }
-
-      setResult(data);
-      toast.success("CV analysis complete!");
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const handleReset = () => {
-    setFile(null);
-    setCvText("");
-    setJobDescription("");
-    setResult(null);
+  const handleJobDeleted = (jobId: string) => {
+    setTrackedJobs(prev => prev.filter(job => job.id !== jobId));
   };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <Sparkles className="h-4 w-4 text-primary-foreground" />
@@ -122,15 +49,12 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
             <Button
-              variant={currentView === "optimizer" ? "secondary" : "ghost"}
+              variant={currentView === "workflow" ? "secondary" : "ghost"}
               size="sm"
-              onClick={() => {
-                setCurrentView("optimizer");
-                handleReset();
-              }}
+              onClick={() => setCurrentView("workflow")}
             >
-              <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Optimiser</span>
+              <Workflow className="mr-1.5 h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Workflow</span>
             </Button>
             <Button
               variant={currentView === "templates" ? "secondary" : "ghost"}
@@ -141,9 +65,9 @@ const Index = () => {
               <span className="hidden sm:inline">Templates</span>
             </Button>
             <Button
-              variant={currentView === "interview" ? "secondary" : "ghost"}
+              variant={currentView === "quiz" ? "secondary" : "ghost"}
               size="sm"
-              onClick={() => setCurrentView("interview")}
+              onClick={() => setCurrentView("quiz")}
             >
               <BookOpen className="mr-1.5 h-3.5 w-3.5" />
               <span className="hidden sm:inline">Quiz</span>
@@ -160,101 +84,41 @@ const Index = () => {
               variant={currentView === "tracker" ? "secondary" : "ghost"}
               size="sm"
               onClick={() => setCurrentView("tracker")}
+              className="relative"
             >
               <Briefcase className="mr-1.5 h-3.5 w-3.5" />
               <span className="hidden sm:inline">Tracker</span>
+              {trackedJobs.length > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                  {trackedJobs.length}
+                </span>
+              )}
             </Button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-4xl px-4 py-12">
-        {currentView === "optimizer" ? (
-          <>
-            {!result ? (
-              <div className="animate-fade-in space-y-8">
-                {/* Hero */}
-                <div className="text-center">
-                  <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                    Optimise Your CV for ATS
-                  </h1>
-                  <p className="mt-3 text-lg text-muted-foreground">
-                    Upload your CV and job description to get instant optimisation suggestions
-                  </p>
-                </div>
-
-                {/* Upload Section */}
-                <div className="grid gap-6 md:grid-cols-2">
-                  <CVInput
-                    file={file}
-                    onFileSelect={setFile}
-                    onFileClear={() => setFile(null)}
-                    cvText={cvText}
-                    onCvTextChange={setCvText}
-                    inputMode={inputMode}
-                    onInputModeChange={setInputMode}
-                  />
-                  <JobDescriptionInput
-                    value={jobDescription}
-                    onChange={setJobDescription}
-                  />
-                </div>
-
-                {/* Analyze Button */}
-                <div className="flex justify-center">
-                  <Button
-                    size="lg"
-                    onClick={handleAnalyze}
-                    disabled={isAnalyzing || !hasValidCv || !jobDescription.trim()}
-                    className="min-w-[200px]"
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Analysing...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Analyse CV
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                {/* Features */}
-                <div className="mt-12 grid gap-4 sm:grid-cols-3">
-                  {[
-                    { title: "ATS Score", desc: "Get a compatibility score" },
-                    { title: "Keyword Analysis", desc: "Find missing keywords" },
-                    { title: "Optimised CV", desc: "Download the improved version" },
-                  ].map((feature, i) => (
-                    <div
-                      key={i}
-                      className="rounded-lg border border-border bg-card p-4 text-center"
-                    >
-                      <p className="font-medium text-foreground">{feature.title}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">{feature.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <ResultsDisplay result={result} onUseInTemplates={handleUseInTemplates} />
-            )}
-          </>
-        ) : currentView === "templates" ? (
-          <CVTemplatePreview 
-            optimizedContent={optimizedCvForTemplates} 
-            onClearOptimizedContent={() => setOptimizedCvForTemplates(null)}
-          />
-        ) : currentView === "interview" ? (
+      <main className="mx-auto max-w-5xl px-4 py-8">
+        {currentView === "workflow" && (
+          <WorkflowWizard onJobAdded={handleJobAdded} />
+        )}
+        {currentView === "templates" && (
+          <CVTemplatePreview />
+        )}
+        {currentView === "quiz" && (
           <InterviewPrep />
-        ) : currentView === "star" ? (
+        )}
+        {currentView === "star" && (
           <STARInterviewPrep />
-        ) : (
-          <JobTracker />
+        )}
+        {currentView === "tracker" && (
+          <JobTracker 
+            jobs={trackedJobs}
+            onJobAdded={handleJobAdded}
+            onJobUpdated={handleJobUpdated}
+            onJobDeleted={handleJobDeleted}
+          />
         )}
       </main>
     </div>
