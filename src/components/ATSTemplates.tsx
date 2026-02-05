@@ -203,6 +203,58 @@ ACTIVITIES & LEADERSHIP
 • [Club/Organization] - [Role] | [Dates]
 • [Award or Honor] | [Year]`,
   },
+  {
+    id: "elegant",
+    name: "Elegant Professional",
+    description: "Sophisticated layout with centred headers and clean sections",
+    content: `[YOUR NAME]
+[Professional Title]
+
+═══════════════════════════════════════════════════════════
+                    PROFESSIONAL SUMMARY
+═══════════════════════════════════════════════════════════
+
+Showcase your top achievements upfront, emphasising measurable impact with numbers whenever possible. Use either bullet points or concise paragraphs to highlight key successes—avoid generic objective statements. Instead, focus on demonstrating how your skills and experience can drive results and add value to the company.
+
+═══════════════════════════════════════════════════════════
+                      WORK EXPERIENCE
+═══════════════════════════════════════════════════════════
+
+[POSITION TITLE]                                    [Date] - Present
+[Company Name], [Location]
+
+• Showcase your achievements by using strong, dynamic action verbs like "managed" and "spearheaded" instead of passive phrases like "responsible for."
+• Go beyond listing job duties—highlight the impact you made! How did your work drive revenue, cut costs, or improve efficiency? Show potential employers why your contributions matter.
+• Lead with your most impressive and relevant accomplishments. Numbers speak volumes, so whenever possible, quantify your results to add credibility and impact.
+
+[POSITION TITLE]                                    [Date] - [Date]
+[Company Name], [Location]
+
+• Showcase your achievements by using strong, dynamic action verbs like "managed" and "spearheaded" instead of passive phrases like "responsible for."
+• Go beyond listing job duties—highlight the impact you made! How did your work drive revenue, cut costs, or improve efficiency?
+• Lead with your most impressive and relevant accomplishments. Quantify your results to add credibility and impact.
+
+[POSITION TITLE]                                    [Date] - [Date]
+[Company Name], [Location]
+
+• Showcase your achievements by using strong, dynamic action verbs like "managed" and "spearheaded" instead of passive phrases like "responsible for."
+• Go beyond listing job duties—highlight the impact you made!
+• Lead with your most impressive and relevant accomplishments.
+
+═══════════════════════════════════════════════════════════
+                         EDUCATION
+═══════════════════════════════════════════════════════════
+
+[Degree] in [Field of Study]
+[University Name] | [Graduation Year]
+
+═══════════════════════════════════════════════════════════
+                          SKILLS
+═══════════════════════════════════════════════════════════
+
+[Skill 1] | [Skill 2] | [Skill 3] | [Skill 4] | [Skill 5]
+[Skill 6] | [Skill 7] | [Skill 8] | [Skill 9] | [Skill 10]`,
+  },
 ];
 
 export function ATSTemplates() {
