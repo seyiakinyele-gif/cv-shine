@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, Eye, Edit3, Save } from "lucide-react";
+import { Download, Eye, Edit3, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -39,7 +39,8 @@ interface CVEditorProps {
 }
 
 function parseOptimizedCV(content: string): CVData {
-  const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
+  const lines = content.split('\n');
+  const nonEmptyLines = lines.map(l => l.trim()).filter(Boolean);
   
   // Default structure
   const data: CVData = {
@@ -52,30 +53,36 @@ function parseOptimizedCV(content: string): CVData {
     education: []
   };
   
-  // Try to extract name from first line
-  if (lines[0] && !lines[0].toLowerCase().includes('@') && !lines[0].includes('|')) {
-    data.name = lines[0];
+  // Try to extract name from first line (usually uppercase or title case, no special chars)
+  if (nonEmptyLines[0] && !nonEmptyLines[0].toLowerCase().includes('@') && !nonEmptyLines[0].includes('|') && !nonEmptyLines[0].includes(':')) {
+    data.name = nonEmptyLines[0];
   }
   
   // Find sections by keywords
   let currentSection = "";
   let currentContent: string[] = [];
+  let unsortedContent: string[] = [];
   
   const sectionKeywords = {
-    summary: ["summary", "profile", "objective", "about"],
-    skills: ["skills", "competencies", "expertise", "technical skills"],
-    experience: ["experience", "work history", "employment", "professional experience"],
-    education: ["education", "qualifications", "academic"]
+    summary: ["summary", "profile", "objective", "about", "introduction", "overview"],
+    skills: ["skills", "competencies", "expertise", "technical skills", "core competencies", "key skills", "technologies", "tools"],
+    experience: ["experience", "work history", "employment", "professional experience", "career history", "work experience", "professional background"],
+    education: ["education", "qualifications", "academic", "certifications", "training", "courses"]
   };
   
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i];
-    const lowerLine = line.toLowerCase();
+  for (let i = 1; i < nonEmptyLines.length; i++) {
+    const line = nonEmptyLines[i];
+    const lowerLine = line.toLowerCase().replace(/[:\-_]/g, ' ');
     
-    // Check if this is a section header
+    // Check if this is a section header (short line with section keyword)
     let foundSection = "";
     for (const [section, keywords] of Object.entries(sectionKeywords)) {
-      if (keywords.some(kw => lowerLine.includes(kw) && line.length < 50)) {
+      if (keywords.some(kw => {
+        const isMatch = lowerLine.includes(kw);
+        const isShortLine = line.length < 60;
+        const looksLikeHeader = /^[A-Z\s]+$/.test(line) || line.endsWith(':') || isShortLine;
+        return isMatch && looksLikeHeader;
+      })) {
         foundSection = section;
         break;
       }
@@ -90,12 +97,15 @@ function parseOptimizedCV(content: string): CVData {
       currentContent = [];
     } else if (currentSection) {
       currentContent.push(line);
-    } else if (!data.contact && (line.includes('@') || line.includes('|') || line.includes('•'))) {
-      data.contact = line;
-    } else if (!data.title && i === 1 && line.length < 60) {
-      data.title = line;
-    } else if (!data.summary && line.length > 50) {
-      data.summary = line;
+    } else {
+      // Content before any section - try to categorize
+      if (!data.contact && (line.includes('@') || (line.includes('|') && line.length < 100) || line.match(/\d{5,}/))) {
+        data.contact = data.contact ? `${data.contact} | ${line}` : line;
+      } else if (!data.title && i <= 2 && line.length < 60 && !line.includes('@')) {
+        data.title = line;
+      } else {
+        unsortedContent.push(line);
+      }
     }
   }
   
@@ -104,9 +114,30 @@ function parseOptimizedCV(content: string): CVData {
     saveSectionContent(data, currentSection, currentContent);
   }
   
-  // If no structured content found, use the whole content as summary
-  if (!data.summary && !data.skills.length && !data.experience.length) {
+  // Add unsorted content to summary if summary is empty
+  if (unsortedContent.length > 0) {
+    const unsortedText = unsortedContent.join('\n');
+    data.summary = data.summary ? `${data.summary}\n\n${unsortedText}` : unsortedText;
+  }
+  
+  // If still no structured content found, parse the whole content more aggressively
+  if (!data.summary && !data.skills.length && !data.experience.length && !data.education.length) {
+    // Put all content into summary for manual editing
     data.summary = content;
+  }
+  
+  // If no experience found but there are bullet points in summary, try to extract them
+  if (data.experience.length === 0 && data.summary) {
+    const bulletLines = data.summary.split('\n').filter(l => l.trim().startsWith('•') || l.trim().startsWith('-') || l.trim().startsWith('*'));
+    if (bulletLines.length > 3) {
+      // Looks like experience, create a placeholder
+      data.experience.push({
+        jobTitle: "Position",
+        company: "Company",
+        dates: "",
+        achievements: bulletLines.map(l => l.replace(/^[•\-*]\s*/, '').trim())
+      });
+    }
   }
   
   return data;
@@ -568,6 +599,22 @@ export function CVEditor({ content, style, templateName, onDownloadTxt, onDownlo
     }));
   };
   
+  const deleteExperience = (index: number) => {
+    setCvData(prev => ({
+      ...prev,
+      experience: prev.experience.filter((_, i) => i !== index)
+    }));
+    toast.success("Experience entry removed");
+  };
+  
+  const deleteEducation = (index: number) => {
+    setCvData(prev => ({
+      ...prev,
+      education: prev.education.filter((_, i) => i !== index)
+    }));
+    toast.success("Education entry removed");
+  };
+  
   const formattedContent = generateFormattedContent(cvData, style);
   
   return (
@@ -685,19 +732,32 @@ export function CVEditor({ content, style, templateName, onDownloadTxt, onDownlo
                 <h4 className="font-medium text-sm text-foreground">Experience</h4>
                 <Button variant="ghost" size="sm" onClick={addExperience}>+ Add</Button>
               </div>
+              {cvData.experience.length === 0 && (
+                <p className="text-sm text-muted-foreground italic">No experience entries. Click "+ Add" to add one.</p>
+              )}
               {cvData.experience.map((exp, i) => (
-                <div key={i} className="p-3 bg-muted/50 rounded-lg space-y-2">
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <Input 
-                      value={exp.jobTitle}
-                      onChange={(e) => updateExperience(i, 'jobTitle', e.target.value)}
-                      placeholder="Job Title"
-                    />
-                    <Input 
-                      value={exp.company}
-                      onChange={(e) => updateExperience(i, 'company', e.target.value)}
-                      placeholder="Company Name"
-                    />
+                <div key={i} className="p-3 bg-muted/50 rounded-lg space-y-2 relative">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="grid gap-2 sm:grid-cols-2 flex-1">
+                      <Input 
+                        value={exp.jobTitle}
+                        onChange={(e) => updateExperience(i, 'jobTitle', e.target.value)}
+                        placeholder="Job Title"
+                      />
+                      <Input 
+                        value={exp.company}
+                        onChange={(e) => updateExperience(i, 'company', e.target.value)}
+                        placeholder="Company Name"
+                      />
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => deleteExperience(i)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                   <Input 
                     value={exp.dates}
@@ -707,8 +767,8 @@ export function CVEditor({ content, style, templateName, onDownloadTxt, onDownlo
                   <Textarea 
                     value={exp.achievements.join('\n')}
                     onChange={(e) => updateExperience(i, 'achievements', e.target.value.split('\n').filter(Boolean))}
-                    placeholder="• Achievement 1&#10;• Achievement 2"
-                    rows={3}
+                    placeholder="• Achievement 1&#10;• Achievement 2&#10;• Achievement 3"
+                    rows={4}
                   />
                 </div>
               ))}
@@ -720,19 +780,32 @@ export function CVEditor({ content, style, templateName, onDownloadTxt, onDownlo
                 <h4 className="font-medium text-sm text-foreground">Education</h4>
                 <Button variant="ghost" size="sm" onClick={addEducation}>+ Add</Button>
               </div>
+              {cvData.education.length === 0 && (
+                <p className="text-sm text-muted-foreground italic">No education entries. Click "+ Add" to add one.</p>
+              )}
               {cvData.education.map((edu, i) => (
                 <div key={i} className="p-3 bg-muted/50 rounded-lg space-y-2">
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <Input 
-                      value={edu.degree}
-                      onChange={(e) => updateEducation(i, 'degree', e.target.value)}
-                      placeholder="Degree / Course"
-                    />
-                    <Input 
-                      value={edu.institution}
-                      onChange={(e) => updateEducation(i, 'institution', e.target.value)}
-                      placeholder="University / Institution"
-                    />
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="grid gap-2 sm:grid-cols-2 flex-1">
+                      <Input 
+                        value={edu.degree}
+                        onChange={(e) => updateEducation(i, 'degree', e.target.value)}
+                        placeholder="Degree / Course"
+                      />
+                      <Input 
+                        value={edu.institution}
+                        onChange={(e) => updateEducation(i, 'institution', e.target.value)}
+                        placeholder="University / Institution"
+                      />
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => deleteEducation(i)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                   <Input 
                     value={edu.dates}
