@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { WorkflowWizard } from "@/components/WorkflowWizard";
+import { WorkflowWizard, TrackedJob } from "@/components/WorkflowWizard";
 import { JobTracker } from "@/components/JobTracker";
 import { InterviewPrep } from "@/components/InterviewPrep";
 import { STARInterviewPrep } from "@/components/STARInterviewPrep";
@@ -7,22 +7,12 @@ import { CVTemplatePreview } from "@/components/CVTemplatePreview";
 import { Button } from "@/components/ui/button";
 import { Sparkles, FileText, BookOpen, Briefcase, Star, Workflow } from "lucide-react";
 
-interface TrackedJob {
-  id: string;
-  company: string;
-  position: string;
-  status: "applied" | "screening" | "interview" | "offer" | "rejected";
-  date_applied: string;
-  link?: string;
-  notes?: string;
-  salary?: string;
-}
-
 type View = "workflow" | "templates" | "quiz" | "star" | "tracker";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>("workflow");
   const [trackedJobs, setTrackedJobs] = useState<TrackedJob[]>([]);
+  const [reviewJob, setReviewJob] = useState<TrackedJob | null>(null);
 
   const handleJobAdded = (job: TrackedJob) => {
     setTrackedJobs(prev => [job, ...prev]);
@@ -34,6 +24,15 @@ const Index = () => {
 
   const handleJobDeleted = (jobId: string) => {
     setTrackedJobs(prev => prev.filter(job => job.id !== jobId));
+  };
+
+  const handleReviewJob = (job: TrackedJob) => {
+    setReviewJob(job);
+    setCurrentView("workflow");
+  };
+
+  const handleClearReview = () => {
+    setReviewJob(null);
   };
 
   return (
@@ -101,7 +100,12 @@ const Index = () => {
       {/* Main Content */}
       <main className="mx-auto max-w-5xl px-4 py-8">
         {currentView === "workflow" && (
-          <WorkflowWizard onJobAdded={handleJobAdded} />
+          <WorkflowWizard 
+            onJobAdded={handleJobAdded}
+            onJobUpdated={handleJobUpdated}
+            reviewJob={reviewJob}
+            onClearReview={handleClearReview}
+          />
         )}
         {currentView === "templates" && (
           <CVTemplatePreview />
@@ -118,6 +122,7 @@ const Index = () => {
             onJobAdded={handleJobAdded}
             onJobUpdated={handleJobUpdated}
             onJobDeleted={handleJobDeleted}
+            onReviewJob={handleReviewJob}
           />
         )}
       </main>
