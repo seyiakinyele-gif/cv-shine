@@ -3,8 +3,10 @@ import { CVInput } from "@/components/CVInput";
 import { JobDescriptionInput } from "@/components/JobDescriptionInput";
 import { ResultsDisplay } from "@/components/ResultsDisplay";
 import { CVTemplatePreview } from "@/components/CVTemplatePreview";
+import { InterviewPrep } from "@/components/InterviewPrep";
+import { JobTracker } from "@/components/JobTracker";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, FileText } from "lucide-react";
+import { Sparkles, Loader2, FileText, BookOpen, Briefcase } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -22,7 +24,7 @@ interface OptimizationResult {
   };
 }
 
-type View = "optimizer" | "templates";
+type View = "optimizer" | "templates" | "interview" | "tracker";
 type InputMode = "file" | "text";
 
 const Index = () => {
@@ -110,7 +112,7 @@ const Index = () => {
             </div>
             <span className="font-semibold text-foreground">Seyidanielsdesigns CV Guide</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <Button
               variant={currentView === "optimizer" ? "secondary" : "ghost"}
               size="sm"
@@ -120,7 +122,7 @@ const Index = () => {
               }}
             >
               <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-              Optimiser
+              <span className="hidden sm:inline">Optimiser</span>
             </Button>
             <Button
               variant={currentView === "templates" ? "secondary" : "ghost"}
@@ -128,7 +130,23 @@ const Index = () => {
               onClick={() => setCurrentView("templates")}
             >
               <FileText className="mr-1.5 h-3.5 w-3.5" />
-              Templates
+              <span className="hidden sm:inline">Templates</span>
+            </Button>
+            <Button
+              variant={currentView === "interview" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setCurrentView("interview")}
+            >
+              <BookOpen className="mr-1.5 h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Interview</span>
+            </Button>
+            <Button
+              variant={currentView === "tracker" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setCurrentView("tracker")}
+            >
+              <Briefcase className="mr-1.5 h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Tracker</span>
             </Button>
           </div>
         </div>
@@ -210,8 +228,12 @@ const Index = () => {
               <ResultsDisplay result={result} />
             )}
           </>
-        ) : (
+        ) : currentView === "templates" ? (
           <CVTemplatePreview />
+        ) : currentView === "interview" ? (
+          <InterviewPrep />
+        ) : (
+          <JobTracker />
         )}
       </main>
     </div>
