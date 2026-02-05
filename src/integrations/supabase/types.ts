@@ -27,6 +27,7 @@ export type Database = {
           status: string
           updated_at: string
           user_id: string
+          workflow_data: Json | null
         }
         Insert: {
           company: string
@@ -40,6 +41,7 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id: string
+          workflow_data?: Json | null
         }
         Update: {
           company?: string
@@ -53,6 +55,7 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+          workflow_data?: Json | null
         }
         Relationships: []
       }
