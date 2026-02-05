@@ -469,8 +469,57 @@ Soft Skills: Communication, Teamwork, Time Management, Problem Solving`
   return contents[style] || contents.classic;
 }
 
+function formatOptimizedContentForTemplate(content: string, style: string): string {
+  // Format the optimized CV content according to each template style
+  const lines = content.trim().split('\n');
+  
+  if (style === "classic") {
+    return `═══════════════════════════════════════════════════════════════════════════════
+
+${content}
+
+═══════════════════════════════════════════════════════════════════════════════
+
+FORMATTED USING: Classic Professional Template
+This template uses traditional formatting ideal for corporate roles.`;
+  }
+  
+  if (style === "modern") {
+    return `───────────────────────────────────────────────────────────────────────────────
+
+${content}
+
+───────────────────────────────────────────────────────────────────────────────
+
+FORMATTED USING: Modern Minimal Template
+This template uses clean, contemporary formatting ideal for tech roles.`;
+  }
+  
+  if (style === "executive") {
+    return `═══════════════════════════════════════════════════════════════════════════════
+
+${content}
+
+═══════════════════════════════════════════════════════════════════════════════
+
+FORMATTED USING: Executive Brief Template
+This template emphasizes leadership and senior-level achievements.`;
+  }
+  
+  // minimal
+  return `───────────────────────────────────────────────────────────────────────────────
+
+${content}
+
+───────────────────────────────────────────────────────────────────────────────
+
+FORMATTED USING: Simple Clean Template
+This template is entry-level friendly and easy to customize.`;
+}
+
 export function CVTemplatePreview({ optimizedContent, onClearOptimizedContent }: CVTemplatePreviewProps) {
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
+  const [selectedTemplateForOptimized, setSelectedTemplateForOptimized] = useState<CVTemplate | null>(null);
 
   const downloadAsText = (template: CVTemplate, customContent?: string) => {
     const content = customContent || generateDownloadContent(template.style);
@@ -546,6 +595,15 @@ ${content.replace(/\n/g, "\\par\n").replace(/•/g, "\\bullet ").replace(/═/g,
     }
   };
 
+  const handleUseTemplateWithOptimized = (template: CVTemplate) => {
+    setSelectedTemplateForOptimized(template);
+  };
+
+  const getFormattedContent = () => {
+    if (!optimizedContent || !selectedTemplateForOptimized) return "";
+    return formatOptimizedContentForTemplate(optimizedContent, selectedTemplateForOptimized.style);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center">
@@ -566,47 +624,74 @@ ${content.replace(/\n/g, "\\par\n").replace(/•/g, "\\bullet ").replace(/═/g,
             <Button
               variant="ghost"
               size="sm"
-              onClick={onClearOptimizedContent}
+              onClick={() => {
+                setSelectedTemplateForOptimized(null);
+                onClearOptimizedContent?.();
+              }}
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground mb-4">
-            Download your optimized CV in your preferred format:
-          </p>
-          <div className="max-h-48 overflow-y-auto rounded-lg bg-muted p-4 mb-4">
-            <pre className="whitespace-pre-wrap text-xs text-foreground">
-              {optimizedContent.slice(0, 500)}...
-            </pre>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => downloadAsText({ id: "optimized", name: "Optimized CV", description: "", style: "classic" }, optimizedContent)}
-              className="flex-1"
-            >
-              <Download className="mr-1.5 h-3.5 w-3.5" />
-              TXT
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => downloadAsWord({ id: "optimized", name: "Optimized CV", description: "", style: "classic" }, optimizedContent)}
-              className="flex-1"
-            >
-              <Download className="mr-1.5 h-3.5 w-3.5" />
-              Word
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => downloadAsPdf({ id: "optimized", name: "Optimized CV", description: "", style: "classic" }, optimizedContent)}
-              className="flex-1"
-            >
-              <Download className="mr-1.5 h-3.5 w-3.5" />
-              PDF
-            </Button>
-          </div>
+          
+          {!selectedTemplateForOptimized ? (
+            <>
+              <p className="text-sm text-muted-foreground mb-4">
+                Select a template below to format and download your optimized CV:
+              </p>
+              <div className="max-h-32 overflow-y-auto rounded-lg bg-muted p-4">
+                <pre className="whitespace-pre-wrap text-xs text-foreground">
+                  {optimizedContent.slice(0, 300)}...
+                </pre>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground mb-2">
+                Template: <span className="font-medium text-foreground">{selectedTemplateForOptimized.name}</span>
+              </p>
+              <div className="max-h-48 overflow-y-auto rounded-lg bg-muted p-4 mb-4">
+                <pre className="whitespace-pre-wrap text-xs text-foreground">
+                  {getFormattedContent().slice(0, 600)}...
+                </pre>
+              </div>
+              <div className="flex gap-2 mb-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadAsText(selectedTemplateForOptimized, getFormattedContent())}
+                  className="flex-1"
+                >
+                  <Download className="mr-1.5 h-3.5 w-3.5" />
+                  TXT
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadAsWord(selectedTemplateForOptimized, getFormattedContent())}
+                  className="flex-1"
+                >
+                  <Download className="mr-1.5 h-3.5 w-3.5" />
+                  Word
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => downloadAsPdf(selectedTemplateForOptimized, getFormattedContent())}
+                  className="flex-1"
+                >
+                  <Download className="mr-1.5 h-3.5 w-3.5" />
+                  PDF
+                </Button>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedTemplateForOptimized(null)}
+                className="w-full"
+              >
+                Choose a different template
+              </Button>
+            </>
+          )}
         </div>
       )}
 
@@ -650,6 +735,18 @@ ${content.replace(/\n/g, "\\par\n").replace(/•/g, "\\bullet ").replace(/═/g,
             <div className="p-4">
               <h3 className="font-semibold text-foreground">{template.name}</h3>
               <p className="text-sm text-muted-foreground mt-1 mb-4">{template.description}</p>
+              
+              {/* Show "Use with my CV" button when optimized content is available */}
+              {optimizedContent && !selectedTemplateForOptimized && (
+                <Button
+                  size="sm"
+                  onClick={() => handleUseTemplateWithOptimized(template)}
+                  className="w-full mb-3"
+                >
+                  <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                  Use with my Optimized CV
+                </Button>
+              )}
               
               <div className="flex gap-2">
                 <Button
