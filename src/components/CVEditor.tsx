@@ -240,12 +240,13 @@ function CVPreviewStyled({ data, style }: { data: CVData; style: string }) {
           <section>
             <h2 className="text-sm font-bold tracking-[0.3em] text-gray-700 border-b border-gray-200 pb-2 mb-3">EDUCATION</h2>
             {data.education.map((edu, i) => (
-              <div key={i}>
+              <div key={i} className="mb-3">
                 <div className="flex justify-between items-baseline">
-                  <span className="italic text-gray-700">{edu.degree}</span>
+                  <span className="italic text-gray-700 font-medium">{edu.degree}</span>
                   {edu.dates && <span className="text-gray-500 text-xs">{edu.dates}</span>}
                 </div>
-                {edu.institution && <p className="text-gray-500 text-xs">{edu.institution}</p>}
+                {edu.institution && <p className="text-gray-500 text-xs mt-0.5">{edu.institution}</p>}
+                {edu.details && <p className="text-gray-500 text-xs mt-0.5">{edu.details}</p>}
               </div>
             ))}
           </section>
@@ -303,9 +304,13 @@ function CVPreviewStyled({ data, style }: { data: CVData; style: string }) {
           <section>
             <h2 className="text-xs font-bold uppercase tracking-wider text-teal-600 mb-3">Education</h2>
             {data.education.map((edu, i) => (
-              <div key={i} className="flex justify-between">
-                <span className="text-gray-800">{edu.degree}{edu.institution && ` — ${edu.institution}`}</span>
-                {edu.dates && <span className="text-gray-500 text-xs">{edu.dates}</span>}
+              <div key={i} className="mb-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-800 font-medium">{edu.degree}</span>
+                  {edu.dates && <span className="text-gray-500 text-xs">{edu.dates}</span>}
+                </div>
+                {edu.institution && <p className="text-gray-600 text-xs mt-0.5">{edu.institution}</p>}
+                {edu.details && <p className="text-gray-500 text-xs mt-0.5">{edu.details}</p>}
               </div>
             ))}
           </section>
@@ -363,9 +368,12 @@ function CVPreviewStyled({ data, style }: { data: CVData; style: string }) {
         {data.education.length > 0 && (
           <section>
             <h2 className="text-xs font-bold tracking-wider text-gray-800 mb-3 border-b border-gray-300 pb-1">EDUCATION & CREDENTIALS</h2>
-            <p className="text-gray-600 text-sm">
-              {data.education.map(edu => `${edu.degree}${edu.institution ? ` — ${edu.institution}` : ''}`).join(' • ')}
-            </p>
+            {data.education.map((edu, i) => (
+              <div key={i} className="mb-2">
+                <span className="text-gray-700 font-medium">{edu.degree}</span>
+                {edu.institution && <p className="text-gray-500 text-xs">{edu.institution}</p>}
+              </div>
+            ))}
           </section>
         )}
       </div>
@@ -391,9 +399,13 @@ function CVPreviewStyled({ data, style }: { data: CVData; style: string }) {
         <section className="mb-5">
           <h2 className="text-xs font-semibold uppercase text-gray-500 mb-2">Education</h2>
           {data.education.map((edu, i) => (
-            <div key={i} className="flex justify-between text-sm">
-              <span className="text-gray-800">{edu.degree}{edu.institution && ` — ${edu.institution}`}</span>
-              {edu.dates && <span className="text-gray-500">{edu.dates}</span>}
+            <div key={i} className="mb-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-800 font-medium">{edu.degree}</span>
+                {edu.dates && <span className="text-gray-500">{edu.dates}</span>}
+              </div>
+              {edu.institution && <p className="text-gray-600 text-xs mt-0.5">{edu.institution}</p>}
+              {edu.details && <p className="text-gray-500 text-xs mt-0.5">{edu.details}</p>}
             </div>
           ))}
         </section>
