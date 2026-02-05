@@ -35,7 +35,7 @@ export function ResultsDisplay({ result }: ResultsDisplayProps) {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(result.optimizedContent);
-    toast.success("Optimized CV copied to clipboard");
+    toast.success("Optimised CV copied to clipboard");
   };
 
   const handleDownload = () => {
@@ -148,10 +148,10 @@ export function ResultsDisplay({ result }: ResultsDisplayProps) {
         </div>
       </div>
 
-      {/* Optimized Content */}
+      {/* Optimised Content */}
       <div className="rounded-xl border border-border bg-card p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-semibold text-foreground">Optimized CV</h3>
+          <h3 className="font-semibold text-foreground">Optimised CV</h3>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleCopy}>
               <Copy className="mr-2 h-4 w-4" />

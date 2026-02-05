@@ -296,7 +296,7 @@ ${template.content.replace(/\n/g, "\\par\n").replace(/•/g, "\\bullet ")}
       <div className="text-center">
         <h2 className="text-2xl font-bold text-foreground">ATS-Friendly Templates</h2>
         <p className="mt-2 text-muted-foreground">
-          Clean, optimized templates designed to pass Applicant Tracking Systems
+          Clean, optimised templates designed to pass Applicant Tracking Systems
         </p>
       </div>
 

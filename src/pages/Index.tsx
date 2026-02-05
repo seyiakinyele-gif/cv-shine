@@ -104,7 +104,7 @@ const Index = () => {
               }}
             >
               <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-              Optimizer
+              Optimiser
             </Button>
             <Button
               variant={currentView === "templates" ? "secondary" : "ghost"}
@@ -127,10 +127,10 @@ const Index = () => {
                 {/* Hero */}
                 <div className="text-center">
                   <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                    Optimize Your CV for ATS
+                    Optimise Your CV for ATS
                   </h1>
                   <p className="mt-3 text-lg text-muted-foreground">
-                    Upload your CV and job description to get instant optimization suggestions
+                    Upload your CV and job description to get instant optimisation suggestions
                   </p>
                 </div>
 
@@ -161,12 +161,12 @@ const Index = () => {
                     {isAnalyzing ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Analyzing...
+                        Analysing...
                       </>
                     ) : (
                       <>
                         <Sparkles className="mr-2 h-4 w-4" />
-                        Analyze CV
+                        Analyse CV
                       </>
                     )}
                   </Button>
@@ -177,7 +177,7 @@ const Index = () => {
                   {[
                     { title: "ATS Score", desc: "Get a compatibility score" },
                     { title: "Keyword Analysis", desc: "Find missing keywords" },
-                    { title: "Optimized CV", desc: "Download the improved version" },
+                    { title: "Optimised CV", desc: "Download the improved version" },
                   ].map((feature, i) => (
                     <div
                       key={i}
