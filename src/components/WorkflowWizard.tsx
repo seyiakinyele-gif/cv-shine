@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CVInput } from "@/components/CVInput";
 import { JobDescriptionInput } from "@/components/JobDescriptionInput";
 import { ResultsDisplay } from "@/components/ResultsDisplay";
@@ -7,7 +7,7 @@ import { InterviewPrepWizard } from "@/components/InterviewPrepWizard";
 import { STARInterviewPrepWizard } from "@/components/STARInterviewPrepWizard";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Sparkles, Loader2, ChevronRight, ChevronLeft, CheckCircle, FileText, BookOpen, Star, Briefcase } from "lucide-react";
+import { Sparkles, Loader2, ChevronRight, ChevronLeft, CheckCircle, FileText, BookOpen, Star, Briefcase, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,13 +25,24 @@ interface OptimizationResult {
   };
 }
 
-interface TrackedJob {
+export interface TrackedJob {
   id: string;
   company: string;
   position: string;
   status: "applied" | "screening" | "interview" | "offer" | "rejected";
   date_applied: string;
+  link?: string;
   notes?: string;
+  salary?: string;
+  // Workflow data for review
+  workflowData?: {
+    cvContent: string;
+    jobDescription: string;
+    result: OptimizationResult | null;
+    optimizedCvContent: string | null;
+    quizComplete: boolean;
+    starComplete: boolean;
+  };
 }
 
 type InputMode = "file" | "text";
@@ -47,9 +58,12 @@ const STEPS = [
 
 interface WorkflowWizardProps {
   onJobAdded: (job: TrackedJob) => void;
+  onJobUpdated?: (job: TrackedJob) => void;
+  reviewJob?: TrackedJob | null;
+  onClearReview?: () => void;
 }
 
-export const WorkflowWizard = ({ onJobAdded }: WorkflowWizardProps) => {
+export const WorkflowWizard = ({ onJobAdded, onJobUpdated, reviewJob, onClearReview }: WorkflowWizardProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
   const [cvText, setCvText] = useState("");
@@ -61,6 +75,26 @@ export const WorkflowWizard = ({ onJobAdded }: WorkflowWizardProps) => {
   const [quizComplete, setQuizComplete] = useState(false);
   const [starComplete, setStarComplete] = useState(false);
   const [extractedJobInfo, setExtractedJobInfo] = useState<{ company: string; position: string } | null>(null);
+  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [isRetesting, setIsRetesting] = useState(false);
+  const [highestCompletedStep, setHighestCompletedStep] = useState(0);
+
+  // Load review job data when reviewJob changes
+  useEffect(() => {
+    if (reviewJob?.workflowData) {
+      setCvText(reviewJob.workflowData.cvContent);
+      setInputMode("text");
+      setJobDescription(reviewJob.workflowData.jobDescription);
+      setResult(reviewJob.workflowData.result);
+      setOptimizedCvContent(reviewJob.workflowData.optimizedCvContent);
+      setQuizComplete(reviewJob.workflowData.quizComplete);
+      setStarComplete(reviewJob.workflowData.starComplete);
+      setExtractedJobInfo({ company: reviewJob.company, position: reviewJob.position });
+      setCurrentJobId(reviewJob.id);
+      setCurrentStep(2);
+      setHighestCompletedStep(5);
+    }
+  }, [reviewJob]);
 
   const readFileContent = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -110,15 +144,18 @@ export const WorkflowWizard = ({ onJobAdded }: WorkflowWizardProps) => {
     return { company, position };
   };
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (isRetest = false) => {
     if (!hasValidCv || !jobDescription.trim()) {
       toast.error("Please provide a CV and enter a job description");
       return;
     }
 
-    setIsAnalyzing(true);
-    setResult(null);
-
+    if (isRetest) {
+      setIsRetesting(true);
+    } else {
+      setIsAnalyzing(true);
+    }
+    
     try {
       const cvContent = await getCvContent();
 
@@ -140,39 +177,116 @@ export const WorkflowWizard = ({ onJobAdded }: WorkflowWizardProps) => {
       setResult(data);
       setOptimizedCvContent(data.optimizedContent);
       
-      // Extract job info and auto-save to tracker
+      // Extract job info
       const jobInfo = extractJobInfo(jobDescription);
       setExtractedJobInfo(jobInfo);
       
-      const newJob: TrackedJob = {
-        id: crypto.randomUUID(),
-        company: jobInfo.company,
-        position: jobInfo.position,
-        status: "applied",
-        date_applied: new Date().toISOString().split("T")[0],
-        notes: `ATS Score: ${data.score}%`,
-      };
-      onJobAdded(newJob);
-      
-      toast.success("CV analysis complete! Job added to tracker.");
-      setCurrentStep(2);
+      if (isRetest) {
+        // Update existing job
+        if (currentJobId && onJobUpdated) {
+          const updatedJob: TrackedJob = {
+            id: currentJobId,
+            company: jobInfo.company,
+            position: jobInfo.position,
+            status: "applied",
+            date_applied: new Date().toISOString().split("T")[0],
+            notes: `ATS Score: ${data.score}%`,
+            workflowData: {
+              cvContent,
+              jobDescription,
+              result: data,
+              optimizedCvContent: data.optimizedContent,
+              quizComplete,
+              starComplete,
+            },
+          };
+          onJobUpdated(updatedJob);
+        }
+        toast.success(`Retest complete! New score: ${data.score}%`);
+      } else {
+        // Create new job
+        const jobId = crypto.randomUUID();
+        setCurrentJobId(jobId);
+        
+        const newJob: TrackedJob = {
+          id: jobId,
+          company: jobInfo.company,
+          position: jobInfo.position,
+          status: "applied",
+          date_applied: new Date().toISOString().split("T")[0],
+          notes: `ATS Score: ${data.score}%`,
+          workflowData: {
+            cvContent,
+            jobDescription,
+            result: data,
+            optimizedCvContent: data.optimizedContent,
+            quizComplete: false,
+            starComplete: false,
+          },
+        };
+        onJobAdded(newJob);
+        toast.success("CV analysis complete! Job added to tracker.");
+        setCurrentStep(2);
+        setHighestCompletedStep(1);
+      }
     } catch (error) {
       console.error("Error:", error);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsAnalyzing(false);
+      setIsRetesting(false);
     }
+  };
+
+  const handleRetest = () => {
+    handleAnalyze(true);
   };
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
-      setCurrentStep(currentStep + 1);
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
+      if (nextStep > highestCompletedStep) {
+        setHighestCompletedStep(nextStep);
+      }
+      // Update workflow data in job when progressing
+      updateJobWorkflowData();
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleStepClick = (stepId: number) => {
+    // Can only click on completed steps or the current step
+    if (stepId <= highestCompletedStep + 1 && stepId !== currentStep) {
+      setCurrentStep(stepId);
+    }
+  };
+
+  const updateJobWorkflowData = async () => {
+    if (currentJobId && onJobUpdated) {
+      const cvContent = await getCvContent();
+      const updatedJob: TrackedJob = {
+        id: currentJobId,
+        company: extractedJobInfo?.company || "Unknown Company",
+        position: extractedJobInfo?.position || "Unknown Position",
+        status: "applied",
+        date_applied: new Date().toISOString().split("T")[0],
+        notes: `ATS Score: ${result?.score || 0}%`,
+        workflowData: {
+          cvContent,
+          jobDescription,
+          result,
+          optimizedCvContent,
+          quizComplete,
+          starComplete,
+        },
+      };
+      onJobUpdated(updatedJob);
     }
   };
 
@@ -186,6 +300,9 @@ export const WorkflowWizard = ({ onJobAdded }: WorkflowWizardProps) => {
     setQuizComplete(false);
     setStarComplete(false);
     setExtractedJobInfo(null);
+    setCurrentJobId(null);
+    setHighestCompletedStep(0);
+    onClearReview?.();
   };
 
   const progressPercent = ((currentStep - 1) / (STEPS.length - 1)) * 100;
@@ -208,22 +325,25 @@ export const WorkflowWizard = ({ onJobAdded }: WorkflowWizardProps) => {
             const StepIcon = step.icon;
             const isActive = step.id === currentStep;
             const isComplete = step.id < currentStep;
+            const isClickable = step.id <= highestCompletedStep + 1 && step.id !== currentStep;
             
             return (
-              <div
+              <button
                 key={step.id}
-                className={`flex flex-col items-center gap-1 ${
+                onClick={() => isClickable && handleStepClick(step.id)}
+                disabled={!isClickable}
+                className={`flex flex-col items-center gap-1 transition-all ${
                   isActive ? "text-primary" : isComplete ? "text-success" : "text-muted-foreground"
-                }`}
+                } ${isClickable ? "cursor-pointer hover:scale-105" : "cursor-default"}`}
               >
                 <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-full border-2 ${
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all ${
                     isActive
                       ? "border-primary bg-primary/10"
                       : isComplete
                       ? "border-success bg-success/10"
                       : "border-muted"
-                  }`}
+                  } ${isClickable ? "hover:ring-2 hover:ring-primary/30" : ""}`}
                 >
                   {isComplete ? (
                     <CheckCircle className="h-4 w-4" />
@@ -232,7 +352,7 @@ export const WorkflowWizard = ({ onJobAdded }: WorkflowWizardProps) => {
                   )}
                 </div>
                 <span className="hidden text-xs sm:block">{step.name}</span>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -270,7 +390,7 @@ export const WorkflowWizard = ({ onJobAdded }: WorkflowWizardProps) => {
             <div className="flex justify-center">
               <Button
                 size="lg"
-                onClick={handleAnalyze}
+                onClick={() => handleAnalyze()}
                 disabled={isAnalyzing || !hasValidCv || !jobDescription.trim()}
                 className="min-w-[200px]"
               >
@@ -298,10 +418,29 @@ export const WorkflowWizard = ({ onJobAdded }: WorkflowWizardProps) => {
                 <ChevronLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
-              <Button onClick={handleNext}>
-                Continue to Templates
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={handleRetest}
+                  disabled={isRetesting}
+                >
+                  {isRetesting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Retesting...
+                    </>
+                  ) : (
+                    <>
+                      <RotateCcw className="mr-2 h-4 w-4" />
+                      Retest Score
+                    </>
+                  )}
+                </Button>
+                <Button onClick={handleNext}>
+                  Continue to Templates
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         )}

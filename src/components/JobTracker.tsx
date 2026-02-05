@@ -28,7 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Briefcase, Calendar, Building2, Trash2, Edit, ExternalLink } from "lucide-react";
+import { Plus, Briefcase, Calendar, Building2, Trash2, Edit, ExternalLink, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +41,14 @@ interface JobApplication {
   link?: string;
   notes?: string;
   salary?: string;
+  workflowData?: {
+    cvContent: string;
+    jobDescription: string;
+    result: any;
+    optimizedCvContent: string | null;
+    quizComplete: boolean;
+    starComplete: boolean;
+  };
 }
 
 const statusConfig = {
@@ -56,9 +64,10 @@ interface JobTrackerProps {
   onJobAdded: (job: JobApplication) => void;
   onJobUpdated: (job: JobApplication) => void;
   onJobDeleted: (jobId: string) => void;
+  onReviewJob?: (job: JobApplication) => void;
 }
 
-export const JobTracker = ({ jobs, onJobAdded, onJobUpdated, onJobDeleted }: JobTrackerProps) => {
+export const JobTracker = ({ jobs, onJobAdded, onJobUpdated, onJobDeleted, onReviewJob }: JobTrackerProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<JobApplication | null>(null);
   const [formData, setFormData] = useState({
@@ -372,6 +381,16 @@ export const JobTracker = ({ jobs, onJobAdded, onJobUpdated, onJobDeleted }: Job
                     <TableCell>{job.salary || "-"}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
+                        {job.workflowData && onReviewJob && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onReviewJob(job)}
+                            title="Review workflow"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
