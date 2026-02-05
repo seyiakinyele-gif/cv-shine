@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,16 +28,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Briefcase, Calendar, Building2, Trash2, Edit, ExternalLink } from "lucide-react";
+import { Plus, Briefcase, Calendar, Building2, Trash2, Edit, ExternalLink, Loader2, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 interface JobApplication {
   id: string;
   company: string;
   position: string;
   status: "applied" | "screening" | "interview" | "offer" | "rejected";
-  dateApplied: string;
+  date_applied: string;
   link?: string;
   notes?: string;
   salary?: string;
@@ -52,44 +55,58 @@ const statusConfig = {
 };
 
 export const JobTracker = () => {
-  const [jobs, setJobs] = useState<JobApplication[]>([
-    {
-      id: "1",
-      company: "Tech Corp",
-      position: "Software Engineer",
-      status: "interview",
-      dateApplied: "2025-02-01",
-      salary: "£65,000",
-      notes: "Second round scheduled for next week",
-    },
-    {
-      id: "2",
-      company: "Digital Agency",
-      position: "Frontend Developer",
-      status: "applied",
-      dateApplied: "2025-02-03",
-      salary: "£55,000",
-    },
-  ]);
-
+  const { user } = useAuth();
+  const [jobs, setJobs] = useState<JobApplication[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<JobApplication | null>(null);
   const [formData, setFormData] = useState({
     company: "",
     position: "",
     status: "applied" as JobApplication["status"],
-    dateApplied: new Date().toISOString().split("T")[0],
+    date_applied: new Date().toISOString().split("T")[0],
     link: "",
     notes: "",
     salary: "",
   });
+
+  useEffect(() => {
+    if (user) {
+      fetchJobs();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const fetchJobs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("job_applications")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setJobs((data || []).map(job => ({
+        ...job,
+        status: job.status as JobApplication["status"],
+        link: job.link || undefined,
+        notes: job.notes || undefined,
+        salary: job.salary || undefined,
+      })));
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      toast.error("Failed to load job applications");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const resetForm = () => {
     setFormData({
       company: "",
       position: "",
       status: "applied",
-      dateApplied: new Date().toISOString().split("T")[0],
+      date_applied: new Date().toISOString().split("T")[0],
       link: "",
       notes: "",
       salary: "",
@@ -104,7 +121,7 @@ export const JobTracker = () => {
         company: job.company,
         position: job.position,
         status: job.status,
-        dateApplied: job.dateApplied,
+        date_applied: job.date_applied,
         link: job.link || "",
         notes: job.notes || "",
         salary: job.salary || "",
@@ -115,7 +132,7 @@ export const JobTracker = () => {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.company.trim() || !formData.position.trim()) {
@@ -123,36 +140,85 @@ export const JobTracker = () => {
       return;
     }
 
-    if (editingJob) {
-      setJobs(jobs.map(job => 
-        job.id === editingJob.id 
-          ? { ...job, ...formData }
-          : job
-      ));
-      toast.success("Job application updated");
-    } else {
-      const newJob: JobApplication = {
-        id: Date.now().toString(),
-        ...formData,
-      };
-      setJobs([newJob, ...jobs]);
-      toast.success("Job application added");
+    if (!user) {
+      toast.error("Please sign in to save applications");
+      return;
     }
 
-    setIsDialogOpen(false);
-    resetForm();
+    try {
+      if (editingJob) {
+        const { error } = await supabase
+          .from("job_applications")
+          .update({
+            company: formData.company,
+            position: formData.position,
+            status: formData.status,
+            date_applied: formData.date_applied,
+            link: formData.link || null,
+            notes: formData.notes || null,
+            salary: formData.salary || null,
+          })
+          .eq("id", editingJob.id);
+
+        if (error) throw error;
+        toast.success("Job application updated");
+      } else {
+        const { error } = await supabase
+          .from("job_applications")
+          .insert({
+            user_id: user.id,
+            company: formData.company,
+            position: formData.position,
+            status: formData.status,
+            date_applied: formData.date_applied,
+            link: formData.link || null,
+            notes: formData.notes || null,
+            salary: formData.salary || null,
+          });
+
+        if (error) throw error;
+        toast.success("Job application added");
+      }
+
+      setIsDialogOpen(false);
+      resetForm();
+      fetchJobs();
+    } catch (error) {
+      console.error("Error saving job:", error);
+      toast.error("Failed to save job application");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setJobs(jobs.filter(job => job.id !== id));
-    toast.success("Job application removed");
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("job_applications")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      setJobs(jobs.filter(job => job.id !== id));
+      toast.success("Job application removed");
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      toast.error("Failed to delete job application");
+    }
   };
 
-  const handleStatusChange = (id: string, status: JobApplication["status"]) => {
-    setJobs(jobs.map(job => 
-      job.id === id ? { ...job, status } : job
-    ));
-    toast.success("Status updated");
+  const handleStatusChange = async (id: string, status: JobApplication["status"]) => {
+    try {
+      const { error } = await supabase
+        .from("job_applications")
+        .update({ status })
+        .eq("id", id);
+
+      if (error) throw error;
+      setJobs(jobs.map(job => job.id === id ? { ...job, status } : job));
+      toast.success("Status updated");
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Failed to update status");
+    }
   };
 
   const stats = {
@@ -161,6 +227,41 @@ export const JobTracker = () => {
     interview: jobs.filter(j => j.status === "interview").length,
     offer: jobs.filter(j => j.status === "offer").length,
   };
+
+  if (!user) {
+    return (
+      <div className="animate-fade-in space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Job Tracker
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            Track your job applications in one place
+          </p>
+        </div>
+        <Card className="mx-auto max-w-md">
+          <CardContent className="py-12 text-center">
+            <LogIn className="mx-auto h-12 w-12 text-muted-foreground/50" />
+            <p className="mt-4 text-lg font-medium text-foreground">Sign in to track jobs</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Your applications will be saved and synced
+            </p>
+            <Button className="mt-4" asChild>
+              <Link to="/auth">Sign In</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -254,12 +355,12 @@ export const JobTracker = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dateApplied">Date Applied</Label>
+                  <Label htmlFor="date_applied">Date Applied</Label>
                   <Input
-                    id="dateApplied"
+                    id="date_applied"
                     type="date"
-                    value={formData.dateApplied}
-                    onChange={(e) => setFormData({ ...formData, dateApplied: e.target.value })}
+                    value={formData.date_applied}
+                    onChange={(e) => setFormData({ ...formData, date_applied: e.target.value })}
                   />
                 </div>
               </div>
@@ -370,7 +471,7 @@ export const JobTracker = () => {
                       </Select>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {new Date(job.dateApplied).toLocaleDateString("en-GB")}
+                      {new Date(job.date_applied).toLocaleDateString("en-GB")}
                     </TableCell>
                     <TableCell>{job.salary || "-"}</TableCell>
                     <TableCell className="text-right">

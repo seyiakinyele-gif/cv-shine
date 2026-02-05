@@ -4,7 +4,14 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, ChevronRight, RotateCcw, BookOpen } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CheckCircle, XCircle, ChevronRight, RotateCcw, BookOpen, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Question {
@@ -14,9 +21,22 @@ interface Question {
   correctAnswer: string;
   explanation: string;
   category: string;
+  jobRole: string;
 }
 
+const jobRoles = [
+  { id: "general", name: "General Business" },
+  { id: "software", name: "Software Engineering" },
+  { id: "marketing", name: "Marketing" },
+  { id: "finance", name: "Finance & Accounting" },
+  { id: "hr", name: "Human Resources" },
+  { id: "sales", name: "Sales" },
+  { id: "project", name: "Project Management" },
+  { id: "data", name: "Data & Analytics" },
+];
+
 const questionBank: Question[] = [
+  // General Business Questions
   {
     id: 1,
     question: "What does 'KPI' stand for in a business context?",
@@ -29,23 +49,11 @@ const questionBank: Question[] = [
     correctAnswer: "A",
     explanation: "KPI stands for Key Performance Indicator - a measurable value that demonstrates how effectively a company is achieving key business objectives.",
     category: "Business Terminology",
+    jobRole: "general",
   },
   {
     id: 2,
-    question: "In project management, what does 'Agile' primarily refer to?",
-    options: [
-      { label: "A", text: "A strict waterfall methodology" },
-      { label: "B", text: "An iterative approach to project delivery" },
-      { label: "C", text: "A type of project budget" },
-      { label: "D", text: "A risk assessment tool" },
-    ],
-    correctAnswer: "B",
-    explanation: "Agile is an iterative approach to project management that helps teams deliver value faster with fewer headaches through short development cycles called sprints.",
-    category: "Project Management",
-  },
-  {
-    id: 3,
-    question: "What is 'ROI' used to measure?",
+    question: "What does 'ROI' measure?",
     options: [
       { label: "A", text: "Employee satisfaction" },
       { label: "B", text: "Return on Investment" },
@@ -53,102 +61,12 @@ const questionBank: Question[] = [
       { label: "D", text: "Risk of Implementation" },
     ],
     correctAnswer: "B",
-    explanation: "ROI (Return on Investment) is a performance measure used to evaluate the efficiency of an investment or compare the efficiency of several investments.",
-    category: "Finance",
+    explanation: "ROI (Return on Investment) is a performance measure used to evaluate the efficiency of an investment.",
+    category: "Business Metrics",
+    jobRole: "general",
   },
   {
-    id: 4,
-    question: "What does 'B2B' mean in a sales context?",
-    options: [
-      { label: "A", text: "Back to Business" },
-      { label: "B", text: "Business to Business" },
-      { label: "C", text: "Budget to Budget" },
-      { label: "D", text: "Brand to Brand" },
-    ],
-    correctAnswer: "B",
-    explanation: "B2B (Business to Business) refers to commerce transactions between businesses, such as between a manufacturer and a wholesaler.",
-    category: "Sales & Marketing",
-  },
-  {
-    id: 5,
-    question: "What is a 'stakeholder' in project management?",
-    options: [
-      { label: "A", text: "Only the project manager" },
-      { label: "B", text: "Anyone with an interest in the project's outcome" },
-      { label: "C", text: "The company shareholders only" },
-      { label: "D", text: "External consultants" },
-    ],
-    correctAnswer: "B",
-    explanation: "A stakeholder is anyone who has an interest in or is affected by a project - this includes team members, customers, sponsors, and end users.",
-    category: "Project Management",
-  },
-  {
-    id: 6,
-    question: "What does 'SLA' stand for in service delivery?",
-    options: [
-      { label: "A", text: "Service Level Agreement" },
-      { label: "B", text: "Standard Legal Arrangement" },
-      { label: "C", text: "System Login Access" },
-      { label: "D", text: "Software License Agreement" },
-    ],
-    correctAnswer: "A",
-    explanation: "SLA (Service Level Agreement) is a commitment between a service provider and a client defining the level of service expected.",
-    category: "Business Terminology",
-  },
-  {
-    id: 7,
-    question: "In HR, what does 'onboarding' refer to?",
-    options: [
-      { label: "A", text: "Firing employees" },
-      { label: "B", text: "The process of integrating new employees" },
-      { label: "C", text: "Annual performance reviews" },
-      { label: "D", text: "Exit interviews" },
-    ],
-    correctAnswer: "B",
-    explanation: "Onboarding is the process of integrating new employees into an organisation, including training, orientation, and cultural assimilation.",
-    category: "Human Resources",
-  },
-  {
-    id: 8,
-    question: "What is 'scalability' in a business context?",
-    options: [
-      { label: "A", text: "The weight of products" },
-      { label: "B", text: "The ability to grow without being hampered by structure" },
-      { label: "C", text: "A type of pricing model" },
-      { label: "D", text: "Employee ranking system" },
-    ],
-    correctAnswer: "B",
-    explanation: "Scalability refers to a company's ability to grow and manage increased demand without compromising performance or losing revenue potential.",
-    category: "Business Strategy",
-  },
-  {
-    id: 9,
-    question: "What does 'CRM' stand for?",
-    options: [
-      { label: "A", text: "Customer Retention Method" },
-      { label: "B", text: "Corporate Risk Management" },
-      { label: "C", text: "Customer Relationship Management" },
-      { label: "D", text: "Client Revenue Model" },
-    ],
-    correctAnswer: "C",
-    explanation: "CRM (Customer Relationship Management) is a technology for managing all your company's relationships and interactions with customers and potential customers.",
-    category: "Sales & Marketing",
-  },
-  {
-    id: 10,
-    question: "What is a 'deliverable' in project terms?",
-    options: [
-      { label: "A", text: "A shipping method" },
-      { label: "B", text: "A tangible or intangible output produced as a result of project work" },
-      { label: "C", text: "The project deadline" },
-      { label: "D", text: "The project budget" },
-    ],
-    correctAnswer: "B",
-    explanation: "A deliverable is any tangible or intangible product or service produced as a result of a project that is intended to be delivered to a customer.",
-    category: "Project Management",
-  },
-  {
-    id: 11,
+    id: 3,
     question: "What does 'SWOT' analysis examine?",
     options: [
       { label: "A", text: "Sales, Wages, Operations, Taxes" },
@@ -157,155 +75,29 @@ const questionBank: Question[] = [
       { label: "D", text: "Strategy, Work, Organisation, Training" },
     ],
     correctAnswer: "B",
-    explanation: "SWOT analysis is a strategic planning technique that identifies Strengths, Weaknesses, Opportunities, and Threats related to business competition or project planning.",
+    explanation: "SWOT analysis identifies Strengths, Weaknesses, Opportunities, and Threats related to business planning.",
+    category: "Strategy",
+    jobRole: "general",
+  },
+  {
+    id: 4,
+    question: "What is 'scalability' in business?",
+    options: [
+      { label: "A", text: "The weight of products" },
+      { label: "B", text: "Ability to grow without structural constraints" },
+      { label: "C", text: "A pricing model" },
+      { label: "D", text: "Employee ranking system" },
+    ],
+    correctAnswer: "B",
+    explanation: "Scalability refers to a company's ability to grow and manage increased demand without compromising performance.",
     category: "Business Strategy",
+    jobRole: "general",
   },
+
+  // Software Engineering Questions
   {
-    id: 12,
-    question: "What is 'B2C' in marketing?",
-    options: [
-      { label: "A", text: "Business to Customer" },
-      { label: "B", text: "Brand to Company" },
-      { label: "C", text: "Budget to Cost" },
-      { label: "D", text: "Business to Consumer" },
-    ],
-    correctAnswer: "D",
-    explanation: "B2C (Business to Consumer) refers to the process of selling products and services directly to consumers who are the end-users.",
-    category: "Sales & Marketing",
-  },
-  {
-    id: 13,
-    question: "What does 'ERP' stand for?",
-    options: [
-      { label: "A", text: "Employee Resource Planning" },
-      { label: "B", text: "Enterprise Resource Planning" },
-      { label: "C", text: "External Review Process" },
-      { label: "D", text: "Efficient Revenue Production" },
-    ],
-    correctAnswer: "B",
-    explanation: "ERP (Enterprise Resource Planning) is software that organisations use to manage day-to-day business activities such as accounting, procurement, and project management.",
-    category: "Technology",
-  },
-  {
-    id: 14,
-    question: "What is 'scope creep' in project management?",
-    options: [
-      { label: "A", text: "A type of project software" },
-      { label: "B", text: "Uncontrolled expansion of project scope" },
-      { label: "C", text: "A team meeting format" },
-      { label: "D", text: "Budget reduction technique" },
-    ],
-    correctAnswer: "B",
-    explanation: "Scope creep refers to the uncontrolled expansion of project scope without adjustments to time, cost, and resources, often leading to project delays and budget overruns.",
-    category: "Project Management",
-  },
-  {
-    id: 15,
-    question: "What does 'MVP' mean in product development?",
-    options: [
-      { label: "A", text: "Most Valuable Player" },
-      { label: "B", text: "Minimum Viable Product" },
-      { label: "C", text: "Maximum Value Proposition" },
-      { label: "D", text: "Marketing Value Point" },
-    ],
-    correctAnswer: "B",
-    explanation: "MVP (Minimum Viable Product) is a development technique where a new product is introduced with basic features to satisfy early adopters and gather feedback for future development.",
-    category: "Product Development",
-  },
-  {
-    id: 16,
-    question: "What is 'due diligence' in business?",
-    options: [
-      { label: "A", text: "Meeting deadlines" },
-      { label: "B", text: "Comprehensive appraisal before a transaction" },
-      { label: "C", text: "Employee punctuality" },
-      { label: "D", text: "Legal compliance only" },
-    ],
-    correctAnswer: "B",
-    explanation: "Due diligence is a comprehensive appraisal of a business or individual prior to signing a contract, or an act with a certain standard of care.",
-    category: "Finance",
-  },
-  {
-    id: 17,
-    question: "What does 'EOD' typically mean in workplace communication?",
-    options: [
-      { label: "A", text: "End of Discussion" },
-      { label: "B", text: "End of Day" },
-      { label: "C", text: "Execution of Duties" },
-      { label: "D", text: "Evaluation of Data" },
-    ],
-    correctAnswer: "B",
-    explanation: "EOD (End of Day) is commonly used to indicate a deadline, typically meaning by the close of business on that day.",
-    category: "Business Terminology",
-  },
-  {
-    id: 18,
-    question: "What is 'benchmarking' in business?",
-    options: [
-      { label: "A", text: "Setting up office furniture" },
-      { label: "B", text: "Comparing performance against industry standards" },
-      { label: "C", text: "Creating employee schedules" },
-      { label: "D", text: "Testing software speed" },
-    ],
-    correctAnswer: "B",
-    explanation: "Benchmarking is the practice of comparing business processes and performance metrics to industry bests and best practices from other companies.",
-    category: "Business Strategy",
-  },
-  {
-    id: 19,
-    question: "What does 'NDA' stand for?",
-    options: [
-      { label: "A", text: "New Deal Agreement" },
-      { label: "B", text: "National Development Agency" },
-      { label: "C", text: "Non-Disclosure Agreement" },
-      { label: "D", text: "No Data Available" },
-    ],
-    correctAnswer: "C",
-    explanation: "NDA (Non-Disclosure Agreement) is a legal contract establishing a confidential relationship between parties to protect sensitive information.",
-    category: "Legal",
-  },
-  {
-    id: 20,
-    question: "What is 'pipeline' in sales terminology?",
-    options: [
-      { label: "A", text: "Oil transportation system" },
-      { label: "B", text: "The stages a prospect goes through to become a customer" },
-      { label: "C", text: "Communication channels" },
-      { label: "D", text: "Data transfer method" },
-    ],
-    correctAnswer: "B",
-    explanation: "A sales pipeline is a visual representation of where prospects are in the sales process, from initial contact to closing the deal.",
-    category: "Sales & Marketing",
-  },
-  {
-    id: 21,
-    question: "What does 'P&L' refer to in finance?",
-    options: [
-      { label: "A", text: "Planning and Logistics" },
-      { label: "B", text: "Profit and Loss" },
-      { label: "C", text: "Performance and Learning" },
-      { label: "D", text: "Products and Licensing" },
-    ],
-    correctAnswer: "B",
-    explanation: "P&L (Profit and Loss) statement is a financial report that summarises revenues, costs, and expenses incurred during a specific period.",
-    category: "Finance",
-  },
-  {
-    id: 22,
-    question: "What is 'churn rate' in business metrics?",
-    options: [
-      { label: "A", text: "Employee productivity measure" },
-      { label: "B", text: "Rate at which customers stop doing business with a company" },
-      { label: "C", text: "Manufacturing speed" },
-      { label: "D", text: "Inventory turnover" },
-    ],
-    correctAnswer: "B",
-    explanation: "Churn rate is the percentage of customers who stop using a company's product or service during a given time period.",
-    category: "Business Metrics",
-  },
-  {
-    id: 23,
-    question: "What does 'API' stand for in technology?",
+    id: 10,
+    question: "What does 'API' stand for?",
     options: [
       { label: "A", text: "Automated Process Integration" },
       { label: "B", text: "Application Programming Interface" },
@@ -313,24 +105,330 @@ const questionBank: Question[] = [
       { label: "D", text: "Analytical Performance Index" },
     ],
     correctAnswer: "B",
-    explanation: "API (Application Programming Interface) is a set of protocols and tools for building software applications that allows different systems to communicate.",
-    category: "Technology",
+    explanation: "API (Application Programming Interface) is a set of protocols for building software that allows different systems to communicate.",
+    category: "Technical",
+    jobRole: "software",
   },
   {
-    id: 24,
-    question: "What is 'synergy' in a business context?",
+    id: 11,
+    question: "What is 'CI/CD' in software development?",
     options: [
-      { label: "A", text: "A type of energy source" },
-      { label: "B", text: "Combined effect greater than individual effects" },
-      { label: "C", text: "Employee collaboration tool" },
-      { label: "D", text: "Market competition" },
+      { label: "A", text: "Code Integration/Code Deployment" },
+      { label: "B", text: "Continuous Integration/Continuous Deployment" },
+      { label: "C", text: "Customer Interface/Customer Design" },
+      { label: "D", text: "Central Intelligence/Central Data" },
     ],
     correctAnswer: "B",
-    explanation: "Synergy refers to the concept that the combined value and performance of two companies will be greater than the sum of the separate individual parts.",
-    category: "Business Strategy",
+    explanation: "CI/CD refers to Continuous Integration and Continuous Deployment, practices that automate building, testing, and deploying code.",
+    category: "DevOps",
+    jobRole: "software",
   },
   {
-    id: 25,
+    id: 12,
+    question: "What is 'technical debt'?",
+    options: [
+      { label: "A", text: "Money owed for software licences" },
+      { label: "B", text: "Cost of maintaining poorly written code" },
+      { label: "C", text: "Hardware expenses" },
+      { label: "D", text: "Training costs" },
+    ],
+    correctAnswer: "B",
+    explanation: "Technical debt is the implied cost of future rework caused by choosing quick solutions over better approaches.",
+    category: "Development",
+    jobRole: "software",
+  },
+  {
+    id: 13,
+    question: "What does 'REST' stand for in web services?",
+    options: [
+      { label: "A", text: "Remote Execution Service Technology" },
+      { label: "B", text: "Representational State Transfer" },
+      { label: "C", text: "Reliable Server Transactions" },
+      { label: "D", text: "Resource Evaluation System" },
+    ],
+    correctAnswer: "B",
+    explanation: "REST (Representational State Transfer) is an architectural style for designing networked applications.",
+    category: "Technical",
+    jobRole: "software",
+  },
+
+  // Marketing Questions
+  {
+    id: 20,
+    question: "What does 'SEO' stand for?",
+    options: [
+      { label: "A", text: "Sales Enhancement Operations" },
+      { label: "B", text: "Search Engine Optimisation" },
+      { label: "C", text: "Social Engagement Outreach" },
+      { label: "D", text: "Strategic Enterprise Objectives" },
+    ],
+    correctAnswer: "B",
+    explanation: "SEO (Search Engine Optimisation) is the practice of increasing website traffic through organic search results.",
+    category: "Digital Marketing",
+    jobRole: "marketing",
+  },
+  {
+    id: 21,
+    question: "What is a 'conversion rate'?",
+    options: [
+      { label: "A", text: "Currency exchange rate" },
+      { label: "B", text: "Percentage of visitors who take a desired action" },
+      { label: "C", text: "Employee turnover rate" },
+      { label: "D", text: "Website loading speed" },
+    ],
+    correctAnswer: "B",
+    explanation: "Conversion rate is the percentage of users who complete a desired action, such as making a purchase or signing up.",
+    category: "Metrics",
+    jobRole: "marketing",
+  },
+  {
+    id: 22,
+    question: "What does 'CTR' measure?",
+    options: [
+      { label: "A", text: "Customer Trust Rating" },
+      { label: "B", text: "Click-Through Rate" },
+      { label: "C", text: "Content Transfer Rate" },
+      { label: "D", text: "Campaign Tracking Results" },
+    ],
+    correctAnswer: "B",
+    explanation: "CTR (Click-Through Rate) measures the percentage of people who click on a link compared to total viewers.",
+    category: "Digital Marketing",
+    jobRole: "marketing",
+  },
+  {
+    id: 23,
+    question: "What is 'lead generation'?",
+    options: [
+      { label: "A", text: "Creating leadership programmes" },
+      { label: "B", text: "Attracting potential customers" },
+      { label: "C", text: "Manufacturing raw materials" },
+      { label: "D", text: "Team building activities" },
+    ],
+    correctAnswer: "B",
+    explanation: "Lead generation is the process of attracting and converting strangers into potential customers.",
+    category: "Sales & Marketing",
+    jobRole: "marketing",
+  },
+
+  // Finance Questions
+  {
+    id: 30,
+    question: "What does 'P&L' refer to?",
+    options: [
+      { label: "A", text: "Planning and Logistics" },
+      { label: "B", text: "Profit and Loss" },
+      { label: "C", text: "Performance and Learning" },
+      { label: "D", text: "Products and Licensing" },
+    ],
+    correctAnswer: "B",
+    explanation: "P&L (Profit and Loss) statement summarises revenues, costs, and expenses during a specific period.",
+    category: "Financial Reporting",
+    jobRole: "finance",
+  },
+  {
+    id: 31,
+    question: "What is 'EBITDA'?",
+    options: [
+      { label: "A", text: "Earnings Before Interest, Taxes, Depreciation, Amortisation" },
+      { label: "B", text: "External Business Investment Tax Deduction Analysis" },
+      { label: "C", text: "Enterprise Budget Integration Data Assessment" },
+      { label: "D", text: "Estimated Balance In Total Debt Allocation" },
+    ],
+    correctAnswer: "A",
+    explanation: "EBITDA measures a company's overall financial performance and is used as an alternative to net income.",
+    category: "Financial Metrics",
+    jobRole: "finance",
+  },
+  {
+    id: 32,
+    question: "What is 'due diligence'?",
+    options: [
+      { label: "A", text: "Meeting deadlines" },
+      { label: "B", text: "Comprehensive appraisal before a transaction" },
+      { label: "C", text: "Employee punctuality" },
+      { label: "D", text: "Legal compliance only" },
+    ],
+    correctAnswer: "B",
+    explanation: "Due diligence is a comprehensive appraisal of a business prior to signing a contract or making an investment.",
+    category: "Finance",
+    jobRole: "finance",
+  },
+  {
+    id: 33,
+    question: "What is a 'fiscal year'?",
+    options: [
+      { label: "A", text: "The calendar year" },
+      { label: "B", text: "A 12-month period for financial reporting" },
+      { label: "C", text: "The tax deadline" },
+      { label: "D", text: "Quarterly earnings period" },
+    ],
+    correctAnswer: "B",
+    explanation: "A fiscal year is a 12-month period used for accounting purposes, which may differ from the calendar year.",
+    category: "Accounting",
+    jobRole: "finance",
+  },
+
+  // HR Questions
+  {
+    id: 40,
+    question: "What does 'onboarding' refer to in HR?",
+    options: [
+      { label: "A", text: "Firing employees" },
+      { label: "B", text: "Integrating new employees" },
+      { label: "C", text: "Annual performance reviews" },
+      { label: "D", text: "Exit interviews" },
+    ],
+    correctAnswer: "B",
+    explanation: "Onboarding is the process of integrating new employees including training, orientation, and cultural assimilation.",
+    category: "HR Processes",
+    jobRole: "hr",
+  },
+  {
+    id: 41,
+    question: "What is 'employee engagement'?",
+    options: [
+      { label: "A", text: "Marriage proposals at work" },
+      { label: "B", text: "Emotional commitment to the organisation" },
+      { label: "C", text: "Employment contracts" },
+      { label: "D", text: "Work schedules" },
+    ],
+    correctAnswer: "B",
+    explanation: "Employee engagement refers to the emotional commitment employees have to their organisation and its goals.",
+    category: "HR Metrics",
+    jobRole: "hr",
+  },
+  {
+    id: 42,
+    question: "What does 'attrition rate' measure?",
+    options: [
+      { label: "A", text: "Customer complaints" },
+      { label: "B", text: "Rate of employee turnover" },
+      { label: "C", text: "Sales performance" },
+      { label: "D", text: "Training completion" },
+    ],
+    correctAnswer: "B",
+    explanation: "Attrition rate measures the rate at which employees leave an organisation over a given period.",
+    category: "HR Metrics",
+    jobRole: "hr",
+  },
+  {
+    id: 43,
+    question: "What is a 'competency framework'?",
+    options: [
+      { label: "A", text: "Building regulations" },
+      { label: "B", text: "Skills and behaviours needed for job success" },
+      { label: "C", text: "Competition analysis" },
+      { label: "D", text: "Compensation structure" },
+    ],
+    correctAnswer: "B",
+    explanation: "A competency framework defines the skills, knowledge, and behaviours required for effective job performance.",
+    category: "HR Development",
+    jobRole: "hr",
+  },
+
+  // Sales Questions
+  {
+    id: 50,
+    question: "What does 'B2B' mean?",
+    options: [
+      { label: "A", text: "Back to Business" },
+      { label: "B", text: "Business to Business" },
+      { label: "C", text: "Budget to Budget" },
+      { label: "D", text: "Brand to Brand" },
+    ],
+    correctAnswer: "B",
+    explanation: "B2B (Business to Business) refers to commerce transactions between businesses.",
+    category: "Sales Model",
+    jobRole: "sales",
+  },
+  {
+    id: 51,
+    question: "What is a 'sales pipeline'?",
+    options: [
+      { label: "A", text: "Oil transportation" },
+      { label: "B", text: "Stages prospects go through to become customers" },
+      { label: "C", text: "Communication channels" },
+      { label: "D", text: "Data transfer method" },
+    ],
+    correctAnswer: "B",
+    explanation: "A sales pipeline is a visual representation of where prospects are in the sales process.",
+    category: "Sales Process",
+    jobRole: "sales",
+  },
+  {
+    id: 52,
+    question: "What does 'CRM' stand for?",
+    options: [
+      { label: "A", text: "Customer Retention Method" },
+      { label: "B", text: "Corporate Risk Management" },
+      { label: "C", text: "Customer Relationship Management" },
+      { label: "D", text: "Client Revenue Model" },
+    ],
+    correctAnswer: "C",
+    explanation: "CRM (Customer Relationship Management) is technology for managing customer relationships and interactions.",
+    category: "Sales Tools",
+    jobRole: "sales",
+  },
+  {
+    id: 53,
+    question: "What is 'churn rate'?",
+    options: [
+      { label: "A", text: "Employee productivity" },
+      { label: "B", text: "Rate customers stop doing business with you" },
+      { label: "C", text: "Manufacturing speed" },
+      { label: "D", text: "Inventory turnover" },
+    ],
+    correctAnswer: "B",
+    explanation: "Churn rate is the percentage of customers who stop using a company's product or service.",
+    category: "Sales Metrics",
+    jobRole: "sales",
+  },
+
+  // Project Management Questions
+  {
+    id: 60,
+    question: "What does 'Agile' primarily refer to?",
+    options: [
+      { label: "A", text: "A strict waterfall methodology" },
+      { label: "B", text: "An iterative approach to project delivery" },
+      { label: "C", text: "A type of project budget" },
+      { label: "D", text: "A risk assessment tool" },
+    ],
+    correctAnswer: "B",
+    explanation: "Agile is an iterative approach to project management using short development cycles called sprints.",
+    category: "Methodology",
+    jobRole: "project",
+  },
+  {
+    id: 61,
+    question: "What is 'scope creep'?",
+    options: [
+      { label: "A", text: "A type of project software" },
+      { label: "B", text: "Uncontrolled expansion of project scope" },
+      { label: "C", text: "A team meeting format" },
+      { label: "D", text: "Budget reduction technique" },
+    ],
+    correctAnswer: "B",
+    explanation: "Scope creep refers to uncontrolled expansion of project scope without adjustments to time, cost, and resources.",
+    category: "Project Risks",
+    jobRole: "project",
+  },
+  {
+    id: 62,
+    question: "What is a 'deliverable'?",
+    options: [
+      { label: "A", text: "A shipping method" },
+      { label: "B", text: "Tangible output from project work" },
+      { label: "C", text: "The project deadline" },
+      { label: "D", text: "The project budget" },
+    ],
+    correctAnswer: "B",
+    explanation: "A deliverable is any tangible or intangible product produced as a result of project work.",
+    category: "Project Terms",
+    jobRole: "project",
+  },
+  {
+    id: 63,
     question: "What does 'OKR' stand for?",
     options: [
       { label: "A", text: "Operational Knowledge Review" },
@@ -339,89 +437,97 @@ const questionBank: Question[] = [
       { label: "D", text: "Output and Knowledge Ratio" },
     ],
     correctAnswer: "B",
-    explanation: "OKR (Objectives and Key Results) is a goal-setting framework used by teams and individuals to define measurable goals and track their outcomes.",
-    category: "Project Management",
+    explanation: "OKR (Objectives and Key Results) is a goal-setting framework used to define and track measurable goals.",
+    category: "Planning",
+    jobRole: "project",
   },
+
+  // Data & Analytics Questions
   {
-    id: 26,
-    question: "What is 'fiscal year' in accounting?",
+    id: 70,
+    question: "What is 'ETL' in data processing?",
     options: [
-      { label: "A", text: "The calendar year" },
-      { label: "B", text: "A 12-month period used for financial reporting" },
-      { label: "C", text: "The tax deadline" },
-      { label: "D", text: "Quarterly earnings period" },
+      { label: "A", text: "External Transfer Logic" },
+      { label: "B", text: "Extract, Transform, Load" },
+      { label: "C", text: "Enterprise Technology Layer" },
+      { label: "D", text: "Estimated Time Limit" },
     ],
     correctAnswer: "B",
-    explanation: "A fiscal year is a 12-month period that a company uses for accounting purposes and preparing financial statements, which may differ from the calendar year.",
-    category: "Finance",
+    explanation: "ETL (Extract, Transform, Load) is the process of copying data from sources into a destination system.",
+    category: "Data Engineering",
+    jobRole: "data",
   },
   {
-    id: 27,
-    question: "What does 'bandwidth' mean in a workplace context?",
+    id: 71,
+    question: "What is 'data warehousing'?",
     options: [
-      { label: "A", text: "Internet connection speed" },
-      { label: "B", text: "Available capacity or resources to handle tasks" },
-      { label: "C", text: "Office space measurement" },
-      { label: "D", text: "Salary range" },
+      { label: "A", text: "Storing physical goods" },
+      { label: "B", text: "Central repository for integrated data" },
+      { label: "C", text: "Cloud storage pricing" },
+      { label: "D", text: "Database backup" },
     ],
     correctAnswer: "B",
-    explanation: "In a workplace context, bandwidth refers to a person's or team's available capacity to take on additional work or responsibilities.",
-    category: "Business Terminology",
+    explanation: "Data warehousing is a system for collecting and managing data from varied sources for business intelligence.",
+    category: "Data Architecture",
+    jobRole: "data",
   },
   {
-    id: 28,
-    question: "What is 'lead generation' in marketing?",
+    id: 72,
+    question: "What does 'A/B testing' measure?",
     options: [
-      { label: "A", text: "Creating leadership programmes" },
-      { label: "B", text: "Process of attracting potential customers" },
-      { label: "C", text: "Manufacturing raw materials" },
-      { label: "D", text: "Team building activities" },
+      { label: "A", text: "Employee performance grades" },
+      { label: "B", text: "Comparing two versions to see which performs better" },
+      { label: "C", text: "Quality assurance standards" },
+      { label: "D", text: "Security vulnerabilities" },
     ],
     correctAnswer: "B",
-    explanation: "Lead generation is the process of attracting and converting strangers and prospects into someone who has indicated interest in your company's product or service.",
-    category: "Sales & Marketing",
+    explanation: "A/B testing compares two versions of something to determine which one performs better.",
+    category: "Analytics",
+    jobRole: "data",
   },
   {
-    id: 29,
-    question: "What does 'compliance' mean in a corporate setting?",
+    id: 73,
+    question: "What is a 'data lake'?",
     options: [
-      { label: "A", text: "Employee agreement" },
-      { label: "B", text: "Adhering to laws, regulations, and internal policies" },
-      { label: "C", text: "Customer satisfaction" },
-      { label: "D", text: "Product quality standards" },
+      { label: "A", text: "A type of swimming pool" },
+      { label: "B", text: "Storage repository for raw data in native format" },
+      { label: "C", text: "Database backup location" },
+      { label: "D", text: "Water cooling system for servers" },
     ],
     correctAnswer: "B",
-    explanation: "Compliance refers to conforming to rules, regulations, laws, and internal policies that govern how a business operates.",
-    category: "Legal",
-  },
-  {
-    id: 30,
-    question: "What is a 'pivot' in startup terminology?",
-    options: [
-      { label: "A", text: "Office furniture" },
-      { label: "B", text: "A fundamental change in business strategy" },
-      { label: "C", text: "A type of investor" },
-      { label: "D", text: "Financial audit" },
-    ],
-    correctAnswer: "B",
-    explanation: "A pivot is a fundamental change in the business strategy, often involving changing the product, target market, or business model based on market feedback.",
-    category: "Business Strategy",
+    explanation: "A data lake is a storage repository that holds vast amounts of raw data in its native format.",
+    category: "Data Architecture",
+    jobRole: "data",
   },
 ];
 
 export const InterviewPrep = () => {
+  const [selectedRole, setSelectedRole] = useState<string>("");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState<number[]>([]);
   const [quizComplete, setQuizComplete] = useState(false);
+  const [quizStarted, setQuizStarted] = useState(false);
 
-  const currentQuestion = questionBank[currentQuestionIndex];
-  const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+  const filteredQuestions = questionBank.filter(q => q.jobRole === selectedRole);
+  const currentQuestion = filteredQuestions[currentQuestionIndex];
+  const isCorrect = currentQuestion && selectedAnswer === currentQuestion.correctAnswer;
+
+  const handleStartQuiz = () => {
+    if (!selectedRole) return;
+    setQuizStarted(true);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer("");
+    setShowResult(false);
+    setScore(0);
+    setAnsweredQuestions([]);
+    setQuizComplete(false);
+  };
 
   const handleSubmitAnswer = () => {
-    if (!selectedAnswer) return;
+    if (!selectedAnswer || !currentQuestion) return;
     
     setShowResult(true);
     if (isCorrect && !answeredQuestions.includes(currentQuestion.id)) {
@@ -431,7 +537,7 @@ export const InterviewPrep = () => {
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < questionBank.length - 1) {
+    if (currentQuestionIndex < filteredQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedAnswer("");
       setShowResult(false);
@@ -441,6 +547,8 @@ export const InterviewPrep = () => {
   };
 
   const handleRestartQuiz = () => {
+    setQuizStarted(false);
+    setSelectedRole("");
     setCurrentQuestionIndex(0);
     setSelectedAnswer("");
     setShowResult(false);
@@ -449,8 +557,18 @@ export const InterviewPrep = () => {
     setQuizComplete(false);
   };
 
-  if (quizComplete) {
-    const percentage = Math.round((score / questionBank.length) * 100);
+  const handleChangeRole = () => {
+    setQuizStarted(false);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer("");
+    setShowResult(false);
+    setScore(0);
+    setAnsweredQuestions([]);
+    setQuizComplete(false);
+  };
+
+  // Role selection screen
+  if (!quizStarted) {
     return (
       <div className="animate-fade-in space-y-6">
         <div className="text-center">
@@ -458,8 +576,65 @@ export const InterviewPrep = () => {
             Interview Preparation
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Test your knowledge of common business terminology
+            Select your job role to get relevant interview questions
           </p>
+        </div>
+
+        <Card className="mx-auto max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              Select Your Job Role
+            </CardTitle>
+            <CardDescription>
+              Questions will be tailored to your chosen role
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a job role..." />
+              </SelectTrigger>
+              <SelectContent>
+                {jobRoles.map((role) => (
+                  <SelectItem key={role.id} value={role.id}>
+                    {role.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {selectedRole && (
+              <p className="text-sm text-muted-foreground">
+                {filteredQuestions.length} questions available for this role
+              </p>
+            )}
+
+            <Button 
+              onClick={handleStartQuiz} 
+              disabled={!selectedRole}
+              className="w-full"
+            >
+              Start Quiz
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Quiz complete screen
+  if (quizComplete) {
+    const percentage = Math.round((score / filteredQuestions.length) * 100);
+    const roleName = jobRoles.find(r => r.id === selectedRole)?.name || "General";
+    
+    return (
+      <div className="animate-fade-in space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Interview Preparation
+          </h1>
+          <p className="mt-2 text-muted-foreground">{roleName} Quiz Complete</p>
         </div>
 
         <Card className="mx-auto max-w-2xl">
@@ -471,14 +646,14 @@ export const InterviewPrep = () => {
             <div className="text-center">
               <div className="text-6xl font-bold text-primary">{percentage}%</div>
               <p className="mt-2 text-lg text-muted-foreground">
-                You got {score} out of {questionBank.length} questions correct
+                You got {score} out of {filteredQuestions.length} questions correct
               </p>
             </div>
             
             <div className="rounded-lg bg-muted p-4">
               {percentage >= 80 ? (
                 <p className="text-center text-foreground">
-                  🎉 Excellent! You have a strong grasp of business terminology.
+                  🎉 Excellent! You have a strong grasp of {roleName.toLowerCase()} terminology.
                 </p>
               ) : percentage >= 60 ? (
                 <p className="text-center text-foreground">
@@ -491,15 +666,23 @@ export const InterviewPrep = () => {
               )}
             </div>
 
-            <Button onClick={handleRestartQuiz} className="w-full">
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Restart Quiz
-            </Button>
+            <div className="flex gap-3">
+              <Button onClick={handleChangeRole} variant="outline" className="flex-1">
+                Change Role
+              </Button>
+              <Button onClick={handleRestartQuiz} className="flex-1">
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Restart Quiz
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
     );
   }
+
+  // Quiz in progress
+  const roleName = jobRoles.find(r => r.id === selectedRole)?.name || "General";
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -508,7 +691,7 @@ export const InterviewPrep = () => {
           Interview Preparation
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Test your knowledge of common business terminology
+          {roleName} - Test your knowledge
         </p>
       </div>
 
@@ -516,10 +699,10 @@ export const InterviewPrep = () => {
       <div className="mx-auto flex max-w-2xl items-center justify-between">
         <Badge variant="secondary">
           <BookOpen className="mr-1.5 h-3 w-3" />
-          {currentQuestion.category}
+          {currentQuestion?.category}
         </Badge>
         <span className="text-sm text-muted-foreground">
-          Question {currentQuestionIndex + 1} of {questionBank.length}
+          Question {currentQuestionIndex + 1} of {filteredQuestions.length}
         </span>
       </div>
 
@@ -527,7 +710,7 @@ export const InterviewPrep = () => {
       <Card className="mx-auto max-w-2xl">
         <CardHeader>
           <CardTitle className="text-lg leading-relaxed">
-            {currentQuestion.question}
+            {currentQuestion?.question}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -537,7 +720,7 @@ export const InterviewPrep = () => {
             disabled={showResult}
             className="space-y-3"
           >
-            {currentQuestion.options.map((option) => (
+            {currentQuestion?.options.map((option) => (
               <div
                 key={option.label}
                 className={cn(
@@ -565,7 +748,7 @@ export const InterviewPrep = () => {
             ))}
           </RadioGroup>
 
-          {showResult && (
+          {showResult && currentQuestion && (
             <div className="rounded-lg bg-muted p-4">
               <p className="text-sm font-medium text-foreground">Explanation:</p>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -585,7 +768,7 @@ export const InterviewPrep = () => {
               </Button>
             ) : (
               <Button onClick={handleNextQuestion} className="flex-1">
-                {currentQuestionIndex < questionBank.length - 1 ? (
+                {currentQuestionIndex < filteredQuestions.length - 1 ? (
                   <>
                     Next Question
                     <ChevronRight className="ml-2 h-4 w-4" />
@@ -599,17 +782,16 @@ export const InterviewPrep = () => {
         </CardContent>
       </Card>
 
-      {/* Score Tracker */}
+      {/* Progress dots */}
       <div className="mx-auto max-w-2xl">
-        <div className="flex items-center justify-center gap-1">
-          {questionBank.map((_, index) => (
+        <div className="flex items-center justify-center gap-1 flex-wrap">
+          {filteredQuestions.map((_, index) => (
             <div
               key={index}
               className={cn(
                 "h-2 w-2 rounded-full",
                 index < currentQuestionIndex
-                  ? answeredQuestions.includes(questionBank[index].id) &&
-                    "bg-primary"
+                  ? "bg-primary"
                   : index === currentQuestionIndex
                   ? "bg-primary"
                   : "bg-muted"
