@@ -29,7 +29,7 @@ serve(async (req) => {
       );
     }
 
-    const systemPrompt = `You are an expert career coach and interview preparation specialist. Based on the job description provided, generate exactly 10 multiple-choice interview questions that test understanding of key terminology, concepts, and skills mentioned in the job description.
+    const systemPrompt = `You are an expert career coach and interview preparation specialist. Based on the job description provided, generate exactly 30 multiple-choice interview questions that test understanding of key terminology, concepts, and skills mentioned in the job description.
 
 Each question should:
 - Test knowledge of specific terms, tools, concepts, or skills from the job description
