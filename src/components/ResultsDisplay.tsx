@@ -1,4 +1,4 @@
-import { CheckCircle, AlertTriangle, Info, Copy, Download } from "lucide-react";
+import { CheckCircle, AlertTriangle, Info, Copy, Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -18,9 +18,10 @@ interface OptimizationResult {
 
 interface ResultsDisplayProps {
   result: OptimizationResult;
+  onUseInTemplates?: (content: string) => void;
 }
 
-export function ResultsDisplay({ result }: ResultsDisplayProps) {
+export function ResultsDisplay({ result, onUseInTemplates }: ResultsDisplayProps) {
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-success";
     if (score >= 60) return "text-warning";
@@ -152,15 +153,21 @@ export function ResultsDisplay({ result }: ResultsDisplayProps) {
       <div className="rounded-xl border border-border bg-card p-6">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="font-semibold text-foreground">Optimised CV</h3>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={handleCopy}>
               <Copy className="mr-2 h-4 w-4" />
               Copy
             </Button>
-            <Button size="sm" onClick={handleDownload}>
+            <Button variant="outline" size="sm" onClick={handleDownload}>
               <Download className="mr-2 h-4 w-4" />
               Download
             </Button>
+            {onUseInTemplates && (
+              <Button size="sm" onClick={() => onUseInTemplates(result.optimizedContent)}>
+                <FileText className="mr-2 h-4 w-4" />
+                Use in Templates
+              </Button>
+            )}
           </div>
         </div>
         <div className="max-h-[400px] overflow-y-auto rounded-lg bg-muted p-4">
