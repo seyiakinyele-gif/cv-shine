@@ -1,4 +1,4 @@
-import { Download, Eye, X } from "lucide-react";
+import { Download, Eye, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -9,6 +9,11 @@ interface CVTemplate {
   name: string;
   description: string;
   style: "classic" | "modern" | "executive" | "minimal";
+}
+
+interface CVTemplatePreviewProps {
+  optimizedContent?: string | null;
+  onClearOptimizedContent?: () => void;
 }
 
 const templates: CVTemplate[] = [
@@ -464,11 +469,11 @@ Soft Skills: Communication, Teamwork, Time Management, Problem Solving`
   return contents[style] || contents.classic;
 }
 
-export function CVTemplatePreview() {
+export function CVTemplatePreview({ optimizedContent, onClearOptimizedContent }: CVTemplatePreviewProps) {
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
 
-  const downloadAsText = (template: CVTemplate) => {
-    const content = generateDownloadContent(template.style);
+  const downloadAsText = (template: CVTemplate, customContent?: string) => {
+    const content = customContent || generateDownloadContent(template.style);
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -481,8 +486,8 @@ export function CVTemplatePreview() {
     toast.success(`${template.name} downloaded`);
   };
 
-  const downloadAsWord = (template: CVTemplate) => {
-    const content = generateDownloadContent(template.style);
+  const downloadAsWord = (template: CVTemplate, customContent?: string) => {
+    const content = customContent || generateDownloadContent(template.style);
     const rtfContent = `{\\rtf1\\ansi\\deff0
 {\\fonttbl{\\f0 Arial;}}
 \\f0\\fs22
@@ -501,8 +506,8 @@ ${content.replace(/\n/g, "\\par\n").replace(/•/g, "\\bullet ").replace(/═/g,
     toast.success(`${template.name} downloaded (opens in Word)`);
   };
 
-  const downloadAsPdf = (template: CVTemplate) => {
-    const content = generateDownloadContent(template.style);
+  const downloadAsPdf = (template: CVTemplate, customContent?: string) => {
+    const content = customContent || generateDownloadContent(template.style);
     const printWindow = window.open("", "_blank");
     if (printWindow) {
       printWindow.document.write(`
@@ -549,6 +554,61 @@ ${content.replace(/\n/g, "\\par\n").replace(/•/g, "\\bullet ").replace(/═/g,
           Professional templates designed to pass Applicant Tracking Systems
         </p>
       </div>
+
+      {/* Optimized CV Section */}
+      {optimizedContent && (
+        <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold text-foreground">Your Optimized CV</h3>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClearOptimizedContent}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Download your optimized CV in your preferred format:
+          </p>
+          <div className="max-h-48 overflow-y-auto rounded-lg bg-muted p-4 mb-4">
+            <pre className="whitespace-pre-wrap text-xs text-foreground">
+              {optimizedContent.slice(0, 500)}...
+            </pre>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => downloadAsText({ id: "optimized", name: "Optimized CV", description: "", style: "classic" }, optimizedContent)}
+              className="flex-1"
+            >
+              <Download className="mr-1.5 h-3.5 w-3.5" />
+              TXT
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => downloadAsWord({ id: "optimized", name: "Optimized CV", description: "", style: "classic" }, optimizedContent)}
+              className="flex-1"
+            >
+              <Download className="mr-1.5 h-3.5 w-3.5" />
+              Word
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => downloadAsPdf({ id: "optimized", name: "Optimized CV", description: "", style: "classic" }, optimizedContent)}
+              className="flex-1"
+            >
+              <Download className="mr-1.5 h-3.5 w-3.5" />
+              PDF
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-6 sm:grid-cols-2">
         {templates.map((template) => (

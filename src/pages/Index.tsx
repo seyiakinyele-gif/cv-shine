@@ -44,7 +44,14 @@ const Index = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<OptimizationResult | null>(null);
   const [currentView, setCurrentView] = useState<View>("optimizer");
+  const [optimizedCvForTemplates, setOptimizedCvForTemplates] = useState<string | null>(null);
   const { user, signOut } = useAuth();
+
+  const handleUseInTemplates = (content: string) => {
+    setOptimizedCvForTemplates(content);
+    setCurrentView("templates");
+    toast.success("Optimized CV loaded into Templates");
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -276,11 +283,14 @@ const Index = () => {
                 </div>
               </div>
             ) : (
-              <ResultsDisplay result={result} />
+              <ResultsDisplay result={result} onUseInTemplates={handleUseInTemplates} />
             )}
           </>
         ) : currentView === "templates" ? (
-          <CVTemplatePreview />
+          <CVTemplatePreview 
+            optimizedContent={optimizedCvForTemplates} 
+            onClearOptimizedContent={() => setOptimizedCvForTemplates(null)}
+          />
         ) : currentView === "interview" ? (
           <InterviewPrep />
         ) : currentView === "star" ? (
