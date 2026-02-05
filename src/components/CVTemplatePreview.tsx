@@ -9,7 +9,7 @@ interface CVTemplate {
   id: string;
   name: string;
   description: string;
-  style: "classic" | "modern" | "executive" | "minimal";
+  style: "classic" | "modern" | "executive" | "minimal" | "academic" | "technical" | "creative" | "healthcare" | "compact" | "elegant";
 }
 
 interface CVTemplatePreviewProps {
@@ -41,6 +41,42 @@ const templates: CVTemplate[] = [
     name: "Simple Clean",
     description: "Entry-level friendly, easy to customise",
     style: "minimal",
+  },
+  {
+    id: "academic-research",
+    name: "Academic & Research",
+    description: "Perfect for academics and researchers",
+    style: "academic",
+  },
+  {
+    id: "technical-specialist",
+    name: "Technical Specialist",
+    description: "Highlight technical skills and projects",
+    style: "technical",
+  },
+  {
+    id: "creative-professional",
+    name: "Creative Professional",
+    description: "Stand out with a creative layout",
+    style: "creative",
+  },
+  {
+    id: "healthcare-professional",
+    name: "Healthcare Professional",
+    description: "Ideal for medical and healthcare roles",
+    style: "healthcare",
+  },
+  {
+    id: "compact-efficient",
+    name: "Compact Efficient",
+    description: "Maximum information in minimal space",
+    style: "compact",
+  },
+  {
+    id: "elegant-professional",
+    name: "Elegant Professional",
+    description: "Sophisticated design for senior roles",
+    style: "elegant",
   },
 ];
 
@@ -231,7 +267,145 @@ function CVPreview({ style }: { style: string }) {
     );
   }
   
-  // minimal style
+  if (style === "academic") {
+    return (
+      <div className={baseClasses}>
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Dr. Michael Chen</h1>
+          <p className="text-gray-600 text-sm">Associate Professor of Computer Science</p>
+          <p className="text-gray-500 text-xs mt-1">m.chen@university.edu | +44 20 7123 4567</p>
+        </div>
+        <section className="mb-5">
+          <h2 className="text-xs font-bold tracking-wider text-gray-700 border-b border-gray-300 pb-1 mb-2">RESEARCH INTERESTS</h2>
+          <p className="text-gray-600 text-sm">Machine Learning, Natural Language Processing, Human-Computer Interaction</p>
+        </section>
+        <section className="mb-5">
+          <h2 className="text-xs font-bold tracking-wider text-gray-700 border-b border-gray-300 pb-1 mb-2">PUBLICATIONS</h2>
+          <p className="text-gray-600 text-xs">Chen, M. et al. (2023). "Deep Learning for NLP" - Nature AI, Vol 12</p>
+          <p className="text-gray-600 text-xs">Chen, M. (2022). "Transformer Architectures" - ACM Computing Surveys</p>
+        </section>
+        <section>
+          <h2 className="text-xs font-bold tracking-wider text-gray-700 border-b border-gray-300 pb-1 mb-2">EDUCATION</h2>
+          <p className="text-gray-600 text-sm">PhD Computer Science — MIT, 2015</p>
+        </section>
+      </div>
+    );
+  }
+  
+  if (style === "technical") {
+    return (
+      <div className={`${baseClasses} font-mono`}>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Alex Rodriguez</h1>
+          <p className="text-primary text-sm">Full Stack Developer</p>
+          <p className="text-gray-500 text-xs">alex@dev.io | GitHub: @alexr | London</p>
+        </div>
+        <section className="mb-5">
+          <h2 className="text-xs font-bold text-primary mb-2">// TECH STACK</h2>
+          <div className="flex flex-wrap gap-1">
+            {["React", "Node.js", "TypeScript", "Python", "AWS", "Docker"].map(skill => (
+              <span key={skill} className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded font-mono">{skill}</span>
+            ))}
+          </div>
+        </section>
+        <section className="mb-5">
+          <h2 className="text-xs font-bold text-primary mb-2">// PROJECTS</h2>
+          <p className="text-gray-600 text-xs">• Built microservices platform handling 1M+ requests/day</p>
+          <p className="text-gray-600 text-xs">• Open-source contributor to React ecosystem</p>
+        </section>
+      </div>
+    );
+  }
+  
+  if (style === "creative") {
+    return (
+      <div className={`${baseClasses} font-sans`}>
+        <div className="mb-6 border-l-4 border-primary pl-4">
+          <h1 className="text-3xl font-light text-gray-900">Sophie Laurent</h1>
+          <p className="text-primary font-medium">Creative Director</p>
+          <p className="text-gray-500 text-xs mt-1">sophie@creative.co | Portfolio: sophiel.design</p>
+        </div>
+        <section className="mb-5">
+          <h2 className="text-xs uppercase tracking-widest text-primary mb-2">Vision</h2>
+          <p className="text-gray-600 text-sm italic">Award-winning creative leader with 10+ years crafting memorable brand experiences.</p>
+        </section>
+        <section className="mb-5">
+          <h2 className="text-xs uppercase tracking-widest text-primary mb-2">Selected Work</h2>
+          <p className="text-gray-600 text-xs">• Nike — Global campaign, 50M impressions</p>
+          <p className="text-gray-600 text-xs">• Apple — Product launch visual identity</p>
+        </section>
+      </div>
+    );
+  }
+  
+  if (style === "healthcare") {
+    return (
+      <div className={baseClasses}>
+        <div className="text-center mb-6 pb-4 border-b-2 border-primary">
+          <h1 className="text-2xl font-bold text-gray-900">Dr. Rachel Green</h1>
+          <p className="text-gray-600">Registered Nurse, BSN, RN</p>
+          <p className="text-gray-500 text-xs mt-1">rachel.green@nhs.uk | GMC: 7654321</p>
+        </div>
+        <section className="mb-5">
+          <h2 className="text-xs font-bold tracking-wider text-gray-700 mb-2">CERTIFICATIONS</h2>
+          <p className="text-gray-600 text-sm">BLS, ACLS, PALS Certified | NMC Registration Active</p>
+        </section>
+        <section className="mb-5">
+          <h2 className="text-xs font-bold tracking-wider text-gray-700 mb-2">CLINICAL EXPERIENCE</h2>
+          <p className="text-gray-600 text-xs">Senior Staff Nurse — St. Mary's Hospital (2019-Present)</p>
+          <p className="text-gray-600 text-xs">Emergency Department — Managing 30+ patients per shift</p>
+        </section>
+      </div>
+    );
+  }
+  
+  if (style === "compact") {
+    return (
+      <div className={`${baseClasses} font-sans text-xs`}>
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">David Kim</h1>
+            <p className="text-gray-600">Project Manager</p>
+          </div>
+          <p className="text-gray-500 text-right text-xs">d.kim@email.com<br/>+44 7890 123456</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <section>
+            <h2 className="font-bold text-gray-700 mb-1">Experience</h2>
+            <p className="text-gray-600">PM Lead — Tech Corp (2020-Now)</p>
+            <p className="text-gray-600">PM — StartupXYZ (2018-2020)</p>
+          </section>
+          <section>
+            <h2 className="font-bold text-gray-700 mb-1">Skills</h2>
+            <p className="text-gray-600">Agile, Scrum, JIRA, MS Project, Stakeholder Management</p>
+          </section>
+        </div>
+      </div>
+    );
+  }
+  
+  if (style === "elegant") {
+    return (
+      <div className={baseClasses}>
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-light tracking-[0.2em] text-gray-800">VICTORIA PRICE</h1>
+          <div className="w-16 h-0.5 bg-primary mx-auto my-3"></div>
+          <p className="text-gray-500 text-sm tracking-wider">Senior Marketing Director</p>
+          <p className="text-gray-400 text-xs mt-2">victoria@email.com | London | LinkedIn</p>
+        </div>
+        <section className="mb-6">
+          <h2 className="text-center text-xs tracking-[0.3em] text-gray-500 mb-3">PROFILE</h2>
+          <p className="text-gray-600 text-sm text-center">Strategic marketing leader with 12+ years driving brand growth for luxury brands.</p>
+        </section>
+        <section>
+          <h2 className="text-center text-xs tracking-[0.3em] text-gray-500 mb-3">EXPERIENCE</h2>
+          <p className="text-gray-700 text-sm text-center">Burberry • Louis Vuitton • Chanel</p>
+        </section>
+      </div>
+    );
+  }
+  
+  // minimal style (default)
   return (
     <div className={`${baseClasses} font-sans`}>
       <div className="mb-6">
