@@ -645,8 +645,48 @@ Soft Skills: Communication, Teamwork, Time Management, Problem Solving`
 }
 
 export function CVTemplatePreview({ optimizedContent, onClearOptimizedContent }: CVTemplatePreviewProps) {
-  const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<CVTemplate | null>(null);
   const [selectedTemplateForOptimized, setSelectedTemplateForOptimized] = useState<CVTemplate | null>(null);
+  const [styleFilters, setStyleFilters] = useState<string[]>([]);
+  const [layoutFilters, setLayoutFilters] = useState<string[]>([]);
+
+  const styleOptions = ["Modern", "Traditional", "Creative", "Executive"];
+  const layoutOptions = ["1 Column", "2 Column", "Mixed"];
+
+  // Map templates to style categories
+  const getTemplateStyleCategory = (style: string): string => {
+    const styleMap: Record<string, string> = {
+      modern: "Modern",
+      technical: "Modern",
+      minimal: "Modern",
+      classic: "Traditional",
+      executive: "Executive",
+      elegant: "Executive",
+      academic: "Traditional",
+      healthcare: "Traditional",
+      creative: "Creative",
+      compact: "Modern",
+    };
+    return styleMap[style] || "Traditional";
+  };
+
+  // Filter templates based on selected filters
+  const filteredTemplates = templates.filter((template) => {
+    if (styleFilters.length === 0) return true;
+    return styleFilters.includes(getTemplateStyleCategory(template.style));
+  });
+
+  const toggleStyleFilter = (style: string) => {
+    setStyleFilters((prev) =>
+      prev.includes(style) ? prev.filter((s) => s !== style) : [...prev, style]
+    );
+  };
+
+  const toggleLayoutFilter = (layout: string) => {
+    setLayoutFilters((prev) =>
+      prev.includes(layout) ? prev.filter((l) => l !== layout) : [...prev, layout]
+    );
+  };
 
   const downloadAsText = (template: CVTemplate, customContent?: string) => {
     const content = customContent || generateDownloadContent(template.style);
@@ -698,174 +738,204 @@ ${content.replace(/\n/g, "\\par\n").replace(/•/g, "\\bullet ").replace(/═/g,
               font-size: 11pt;
               line-height: 1.6;
               color: #1a1a1a;
-              max-width: 8.5in;
-              margin: 0 auto;
-              padding: 0.5in;
-            }
-            pre {
               white-space: pre-wrap;
-              word-wrap: break-word;
-              font-family: Arial, sans-serif;
-              font-size: 11pt;
-              margin: 0;
             }
           </style>
         </head>
-        <body>
-          <pre>${content}</pre>
-          <script>window.onload = function() { window.print(); }</script>
-        </body>
+        <body>${content}</body>
         </html>
       `);
       printWindow.document.close();
-      toast.success("Print dialog opened - Save as PDF");
+      printWindow.print();
     }
   };
 
   const handleUseTemplateWithOptimized = (template: CVTemplate) => {
     setSelectedTemplateForOptimized(template);
+    setSelectedTemplate(null);
   };
 
+  // If editing optimized content, show editor fullscreen
+  if (optimizedContent && selectedTemplateForOptimized) {
+    return (
+      <div className="animate-fade-in">
+        <CVEditor
+          content={optimizedContent}
+          style={selectedTemplateForOptimized.style}
+          templateName={selectedTemplateForOptimized.name}
+          onDownloadTxt={(content) => downloadAsText(selectedTemplateForOptimized, content)}
+          onDownloadWord={(content) => downloadAsWord(selectedTemplateForOptimized, content)}
+          onDownloadPdf={(content) => downloadAsPdf(selectedTemplateForOptimized, content)}
+          onBack={() => setSelectedTemplateForOptimized(null)}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground">ATS-Friendly CV Templates</h2>
-        <p className="mt-2 text-muted-foreground">
-          Professional templates designed to pass Applicant Tracking Systems
-        </p>
+    <div className="animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
+            <Eye className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <h2 className="text-xl font-semibold text-foreground">Template Library</h2>
+        </div>
+        {selectedTemplate && (
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setSelectedTemplate(null)}>
+              Close
+            </Button>
+            <Button size="sm" onClick={() => downloadAsPdf(selectedTemplate)}>
+              Use Template
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* Optimized CV Section */}
+      {/* Optimized CV Banner */}
       {optimizedContent && (
-        <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-6">
-          {!selectedTemplateForOptimized ? (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-foreground">Your Optimized CV</h3>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onClearOptimizedContent}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Select a template below to format, edit, and download your optimized CV:
-              </p>
-              <div className="max-h-32 overflow-y-auto rounded-lg bg-muted p-4">
-                <pre className="whitespace-pre-wrap text-xs text-foreground">
-                  {optimizedContent.slice(0, 300)}...
-                </pre>
-              </div>
-            </>
-          ) : (
-            <CVEditor
-              content={optimizedContent}
-              style={selectedTemplateForOptimized.style}
-              templateName={selectedTemplateForOptimized.name}
-              onDownloadTxt={(content) => downloadAsText(selectedTemplateForOptimized, content)}
-              onDownloadWord={(content) => downloadAsWord(selectedTemplateForOptimized, content)}
-              onDownloadPdf={(content) => downloadAsPdf(selectedTemplateForOptimized, content)}
-              onBack={() => setSelectedTemplateForOptimized(null)}
-            />
-          )}
+        <div className="mb-6 rounded-lg border border-primary/30 bg-primary/5 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <div>
+              <p className="font-medium text-foreground">Your Optimized CV is ready</p>
+              <p className="text-sm text-muted-foreground">Select a template to format and download</p>
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onClearOptimizedContent}>
+            <X className="h-4 w-4" />
+          </Button>
         </div>
       )}
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        {templates.map((template) => (
-          <div
-            key={template.id}
-            className="group rounded-xl border border-border bg-card overflow-hidden transition-all hover:border-primary/30 hover:shadow-lg"
-          >
-            {/* Preview thumbnail */}
-            <div className="relative bg-gray-100 p-4 h-64 overflow-hidden">
-              <div className="transform scale-[0.35] origin-top-left w-[280%]">
-                <CVPreview style={template.style} />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-gray-100" />
-              
-              {/* Preview overlay button */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <button className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/40 transition-all group-hover:bg-black/20">
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-gray-900 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      Preview
-                    </span>
-                  </button>
-                </DialogTrigger>
-                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
-                  <div className="sticky top-0 bg-background border-b p-4 flex items-center justify-between">
-                    <h3 className="font-semibold">{template.name}</h3>
-                  </div>
-                  <div className="p-4">
-                    <div className="border rounded-lg shadow-lg overflow-hidden">
-                      <CVPreview style={template.style} />
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+      <div className="flex gap-6">
+        {/* Left Sidebar - Filters */}
+        <div className="w-40 flex-shrink-0 space-y-6">
+          <div>
+            <h3 className="font-medium text-foreground mb-3">Styles</h3>
+            <div className="space-y-2">
+              {styleOptions.map((style) => (
+                <label key={style} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={styleFilters.includes(style)}
+                    onChange={() => toggleStyleFilter(style)}
+                    className="rounded border-border"
+                  />
+                  <span className="text-sm text-foreground">{style}</span>
+                </label>
+              ))}
             </div>
+          </div>
 
-            {/* Info and actions */}
-            <div className="p-4">
-              <h3 className="font-semibold text-foreground">{template.name}</h3>
-              <p className="text-sm text-muted-foreground mt-1 mb-4">{template.description}</p>
-              
-              {/* Show "Use with my CV" button when optimized content is available */}
-              {optimizedContent && !selectedTemplateForOptimized && (
-                <Button
-                  size="sm"
-                  onClick={() => handleUseTemplateWithOptimized(template)}
-                  className="w-full mb-3"
-                >
-                  <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                  Use with my Optimized CV
-                </Button>
-              )}
-              
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => downloadAsText(template)}
-                  className="flex-1"
-                >
-                  <Download className="mr-1.5 h-3.5 w-3.5" />
-                  TXT
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => downloadAsWord(template)}
-                  className="flex-1"
-                >
-                  <Download className="mr-1.5 h-3.5 w-3.5" />
-                  Word
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => downloadAsPdf(template)}
-                  className="flex-1"
-                >
-                  <Download className="mr-1.5 h-3.5 w-3.5" />
-                  PDF
-                </Button>
+          <div>
+            <h3 className="font-medium text-foreground mb-3">Layouts</h3>
+            <div className="space-y-2">
+              {layoutOptions.map((layout) => (
+                <label key={layout} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={layoutFilters.includes(layout)}
+                    onChange={() => toggleLayoutFilter(layout)}
+                    className="rounded border-border"
+                  />
+                  <span className="text-sm text-foreground">{layout}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Center - Thumbnail Grid */}
+        <div className="flex-1 min-w-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {filteredTemplates.map((template) => (
+              <button
+                key={template.id}
+                onClick={() => setSelectedTemplate(template)}
+                className={`group relative rounded-lg border overflow-hidden transition-all hover:border-primary/50 hover:shadow-md ${
+                  selectedTemplate?.id === template.id
+                    ? "border-primary ring-2 ring-primary/20"
+                    : "border-border"
+                }`}
+              >
+                {/* Small thumbnail preview */}
+                <div className="relative bg-white h-32 overflow-hidden">
+                  <div className="transform scale-[0.18] origin-top-left w-[555%]">
+                    <CVPreview style={template.style} />
+                  </div>
+                </div>
+                
+                {/* Template name */}
+                <div className="p-2 bg-card border-t border-border">
+                  <p className="text-xs font-medium text-foreground truncate">{template.name}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Panel - Preview */}
+        {selectedTemplate && (
+          <div className="w-80 flex-shrink-0 border-l border-border pl-6">
+            <div className="sticky top-24">
+              {/* Template header */}
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-primary uppercase tracking-wide">
+                  {selectedTemplate.name.split(' ')[0]}
+                </h3>
+                <p className="text-sm text-muted-foreground">{selectedTemplate.description}</p>
+              </div>
+
+              {/* Full preview */}
+              <div className="border border-border rounded-lg bg-white overflow-hidden mb-4 max-h-[400px] overflow-y-auto">
+                <div className="transform scale-[0.45] origin-top-left w-[222%]">
+                  <CVPreview style={selectedTemplate.style} />
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="space-y-2">
+                {optimizedContent && (
+                  <Button
+                    className="w-full"
+                    onClick={() => handleUseTemplateWithOptimized(selectedTemplate)}
+                  >
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Use with My CV
+                  </Button>
+                )}
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadAsText(selectedTemplate)}
+                  >
+                    <Download className="mr-1 h-3 w-3" />
+                    TXT
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadAsWord(selectedTemplate)}
+                  >
+                    <Download className="mr-1 h-3 w-3" />
+                    Word
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => downloadAsPdf(selectedTemplate)}
+                  >
+                    <Download className="mr-1 h-3 w-3" />
+                    PDF
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        ))}
-      </div>
-
-      <div className="rounded-lg bg-accent/50 p-4 text-center">
-        <p className="text-sm text-accent-foreground">
-          <strong>Pro tip:</strong> These templates use simple formatting, standard fonts, and avoid tables/graphics for maximum ATS compatibility.
-        </p>
+        )}
       </div>
     </div>
   );
