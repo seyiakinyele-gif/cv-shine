@@ -5,9 +5,10 @@ import { JobDescriptionInput } from "@/components/JobDescriptionInput";
 import { ResultsDisplay } from "@/components/ResultsDisplay";
 import { CVTemplatePreview } from "@/components/CVTemplatePreview";
 import { InterviewPrep } from "@/components/InterviewPrep";
+import { STARInterviewPrep } from "@/components/STARInterviewPrep";
 import { JobTracker } from "@/components/JobTracker";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, FileText, BookOpen, Briefcase, LogIn, LogOut, User } from "lucide-react";
+import { Sparkles, Loader2, FileText, BookOpen, Briefcase, LogIn, LogOut, User, Star } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,7 +33,7 @@ interface OptimizationResult {
   };
 }
 
-type View = "optimizer" | "templates" | "interview" | "tracker";
+type View = "optimizer" | "templates" | "interview" | "star" | "tracker";
 type InputMode = "file" | "text";
 
 const Index = () => {
@@ -152,7 +153,15 @@ const Index = () => {
               onClick={() => setCurrentView("interview")}
             >
               <BookOpen className="mr-1.5 h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Interview</span>
+              <span className="hidden sm:inline">Quiz</span>
+            </Button>
+            <Button
+              variant={currentView === "star" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setCurrentView("star")}
+            >
+              <Star className="mr-1.5 h-3.5 w-3.5" />
+              <span className="hidden sm:inline">STAR</span>
             </Button>
             <Button
               variant={currentView === "tracker" ? "secondary" : "ghost"}
@@ -274,6 +283,8 @@ const Index = () => {
           <CVTemplatePreview />
         ) : currentView === "interview" ? (
           <InterviewPrep />
+        ) : currentView === "star" ? (
+          <STARInterviewPrep />
         ) : (
           <JobTracker />
         )}
