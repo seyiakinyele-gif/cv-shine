@@ -4,8 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, Eye, Edit3, Trash2 } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Download, Eye, Edit3, Trash2, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { toast } from "sonner";
 
 interface CVData {
@@ -560,8 +561,9 @@ ${data.skills.join(' • ')}`;
 }
 
 export function CVEditor({ content, style, templateName, onDownloadTxt, onDownloadWord, onDownloadPdf, onBack }: CVEditorProps) {
-  const [mode, setMode] = useState<"preview" | "edit">("preview");
+  const [mode, setMode] = useState<"preview" | "edit" | "raw">("preview");
   const [cvData, setCvData] = useState<CVData>(() => parseOptimizedCV(content));
+  const [rawContent, setRawContent] = useState(content);
   
   const updateField = (field: keyof CVData, value: any) => {
     setCvData(prev => ({ ...prev, [field]: value }));
@@ -624,7 +626,7 @@ export function CVEditor({ content, style, templateName, onDownloadTxt, onDownlo
           ← Back to templates
         </Button>
         <div className="flex gap-2">
-          <Tabs value={mode} onValueChange={(v) => setMode(v as "preview" | "edit")}>
+          <Tabs value={mode} onValueChange={(v) => setMode(v as "preview" | "edit" | "raw")}>
             <TabsList>
               <TabsTrigger value="preview">
                 <Eye className="mr-1.5 h-3.5 w-3.5" />
@@ -632,7 +634,11 @@ export function CVEditor({ content, style, templateName, onDownloadTxt, onDownlo
               </TabsTrigger>
               <TabsTrigger value="edit">
                 <Edit3 className="mr-1.5 h-3.5 w-3.5" />
-                Design Mode
+                Design
+              </TabsTrigger>
+              <TabsTrigger value="raw">
+                <FileText className="mr-1.5 h-3.5 w-3.5" />
+                Raw
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -650,6 +656,9 @@ export function CVEditor({ content, style, templateName, onDownloadTxt, onDownlo
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
+              <VisuallyHidden>
+                <DialogTitle>Full CV Preview</DialogTitle>
+              </VisuallyHidden>
               <div className="sticky top-0 bg-background border-b p-4">
                 <h3 className="font-semibold">Full Preview: {templateName}</h3>
               </div>
@@ -662,7 +671,7 @@ export function CVEditor({ content, style, templateName, onDownloadTxt, onDownlo
           </Dialog>
         </div>
         
-        {mode === "preview" ? (
+        {mode === "preview" && (
           <div className="relative bg-gray-100 rounded-lg overflow-hidden">
             <div className="aspect-[8.5/11] overflow-hidden">
               <div className="transform scale-[0.5] origin-top-left w-[200%]">
@@ -670,7 +679,48 @@ export function CVEditor({ content, style, templateName, onDownloadTxt, onDownlo
               </div>
             </div>
           </div>
-        ) : (
+        )}
+        
+        {mode === "raw" && (
+          <div className="space-y-4">
+            <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                This is the original optimized CV content from the AI. You can copy it or edit it directly.
+              </p>
+            </div>
+            <Textarea 
+              value={rawContent}
+              onChange={(e) => setRawContent(e.target.value)}
+              className="min-h-[400px] font-mono text-xs"
+              placeholder="Your optimized CV content..."
+            />
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(rawContent);
+                  toast.success("Copied to clipboard");
+                }}
+              >
+                Copy All
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setCvData(parseOptimizedCV(rawContent));
+                  toast.success("Re-parsed CV content");
+                  setMode("edit");
+                }}
+              >
+                Re-parse & Edit
+              </Button>
+            </div>
+          </div>
+        )}
+        
+        {mode === "edit" && (
           <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2">
             {/* Personal Info */}
             <div className="space-y-3">
