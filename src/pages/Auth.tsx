@@ -97,10 +97,10 @@ const Auth = () => {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="mb-8 flex items-center gap-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-          <Sparkles className="h-5 w-5 text-primary-foreground" />
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+          <Sparkles className="h-4 w-4 text-primary-foreground" />
         </div>
-        <span className="text-xl font-semibold text-foreground">Seyidanielsdesigns CV Guide</span>
+        <span className="text-base font-medium text-foreground">Seyidaniel Consulting</span>
       </div>
 
       <Card className="w-full max-w-md">
