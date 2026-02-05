@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useState } from "react";
+import { CVEditor } from "./CVEditor";
 
 interface CVTemplate {
   id: string;
@@ -469,118 +470,6 @@ Soft Skills: Communication, Teamwork, Time Management, Problem Solving`
   return contents[style] || contents.classic;
 }
 
-function formatOptimizedContentForTemplate(content: string, style: string): string {
-  // Parse the content to identify sections
-  const lines = content.trim().split('\n').filter(line => line.trim());
-  
-  // Try to extract name from first meaningful line
-  const nameMatch = lines[0]?.toUpperCase() || "YOUR NAME";
-  
-  if (style === "classic") {
-    return `${nameMatch}
-
-═══════════════════════════════════════════════════════════════════════════════
-
-${content}
-
-═══════════════════════════════════════════════════════════════════════════════`;
-  }
-  
-  if (style === "modern") {
-    return `${nameMatch}
-
-───────────────────────────────────────────────────────────────────────────────
-
-${content}
-
-───────────────────────────────────────────────────────────────────────────────`;
-  }
-  
-  if (style === "executive") {
-    return `${nameMatch}
-
-═══════════════════════════════════════════════════════════════════════════════
-
-EXECUTIVE PROFILE
-
-${content}
-
-═══════════════════════════════════════════════════════════════════════════════`;
-  }
-  
-  // minimal
-  return `${nameMatch}
-
-───────────────────────────────────────────────────────────────────────────────
-
-${content}
-
-───────────────────────────────────────────────────────────────────────────────`;
-}
-
-function OptimizedCVPreview({ content, style }: { content: string; style: string }) {
-  const baseClasses = "w-full bg-white text-gray-900 p-8 font-serif text-sm leading-relaxed";
-  
-  if (style === "classic") {
-    return (
-      <div className={baseClasses}>
-        <div className="text-center border-b-2 border-gray-300 pb-6 mb-6">
-          <h1 className="text-2xl font-bold tracking-widest text-gray-800 mb-2">YOUR OPTIMIZED CV</h1>
-          <p className="text-gray-500 uppercase tracking-wider text-xs">Classic Professional Format</p>
-        </div>
-        <div className="whitespace-pre-wrap text-gray-700 text-xs leading-relaxed">
-          {content}
-        </div>
-      </div>
-    );
-  }
-  
-  if (style === "modern") {
-    return (
-      <div className={`${baseClasses} font-sans`}>
-        <div className="mb-6">
-          <h1 className="text-3xl font-light text-gray-900 mb-1">Your Optimized CV</h1>
-          <p className="text-primary font-medium text-sm">Modern Minimal Format</p>
-        </div>
-        <div className="border-l-2 border-primary pl-4">
-          <div className="whitespace-pre-wrap text-gray-700 text-xs leading-relaxed">
-            {content}
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
-  if (style === "executive") {
-    return (
-      <div className={baseClasses}>
-        <div className="text-center mb-6 pb-4 border-b border-gray-800">
-          <h1 className="text-xl font-bold text-gray-900 tracking-wide">YOUR OPTIMIZED CV</h1>
-          <p className="text-gray-600 mt-1 text-sm">Executive Brief Format</p>
-        </div>
-        <div className="bg-gray-50 p-4 border-l-4 border-gray-800">
-          <div className="whitespace-pre-wrap text-gray-700 text-xs leading-relaxed">
-            {content}
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
-  // minimal
-  return (
-    <div className={`${baseClasses} font-sans`}>
-      <div className="mb-6">
-        <h1 className="text-xl font-medium text-gray-900">Your Optimized CV</h1>
-        <p className="text-gray-500 text-xs mt-1">Simple Clean Format</p>
-      </div>
-      <div className="whitespace-pre-wrap text-gray-700 text-xs leading-relaxed">
-        {content}
-      </div>
-    </div>
-  );
-}
-
 export function CVTemplatePreview({ optimizedContent, onClearOptimizedContent }: CVTemplatePreviewProps) {
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
   const [selectedTemplateForOptimized, setSelectedTemplateForOptimized] = useState<CVTemplate | null>(null);
@@ -663,11 +552,6 @@ ${content.replace(/\n/g, "\\par\n").replace(/•/g, "\\bullet ").replace(/═/g,
     setSelectedTemplateForOptimized(template);
   };
 
-  const getFormattedContent = () => {
-    if (!optimizedContent || !selectedTemplateForOptimized) return "";
-    return formatOptimizedContentForTemplate(optimizedContent, selectedTemplateForOptimized.style);
-  };
-
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center">
@@ -680,27 +564,23 @@ ${content.replace(/\n/g, "\\par\n").replace(/•/g, "\\bullet ").replace(/═/g,
       {/* Optimized CV Section */}
       {optimizedContent && (
         <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-foreground">Your Optimized CV</h3>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setSelectedTemplateForOptimized(null);
-                onClearOptimizedContent?.();
-              }}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          
           {!selectedTemplateForOptimized ? (
             <>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold text-foreground">Your Optimized CV</h3>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClearOptimizedContent}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
               <p className="text-sm text-muted-foreground mb-4">
-                Select a template below to format and download your optimized CV:
+                Select a template below to format, edit, and download your optimized CV:
               </p>
               <div className="max-h-32 overflow-y-auto rounded-lg bg-muted p-4">
                 <pre className="whitespace-pre-wrap text-xs text-foreground">
@@ -709,76 +589,15 @@ ${content.replace(/\n/g, "\\par\n").replace(/•/g, "\\bullet ").replace(/═/g,
               </div>
             </>
           ) : (
-            <>
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm text-muted-foreground">
-                  Template: <span className="font-medium text-foreground">{selectedTemplateForOptimized.name}</span>
-                </p>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Eye className="mr-1.5 h-3.5 w-3.5" />
-                      Preview
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
-                    <div className="sticky top-0 bg-background border-b p-4 flex items-center justify-between">
-                      <h3 className="font-semibold">Preview: {selectedTemplateForOptimized.name}</h3>
-                    </div>
-                    <div className="p-4">
-                      <div className="border rounded-lg shadow-lg overflow-hidden">
-                        <OptimizedCVPreview content={optimizedContent} style={selectedTemplateForOptimized.style} />
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              
-              {/* Visual preview thumbnail */}
-              <div className="relative bg-gray-100 rounded-lg p-3 mb-4 h-48 overflow-hidden">
-                <div className="transform scale-[0.3] origin-top-left w-[333%]">
-                  <OptimizedCVPreview content={optimizedContent} style={selectedTemplateForOptimized.style} />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-gray-100 pointer-events-none" />
-              </div>
-              
-              <div className="flex gap-2 mb-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => downloadAsText(selectedTemplateForOptimized, getFormattedContent())}
-                  className="flex-1"
-                >
-                  <Download className="mr-1.5 h-3.5 w-3.5" />
-                  TXT
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => downloadAsWord(selectedTemplateForOptimized, getFormattedContent())}
-                  className="flex-1"
-                >
-                  <Download className="mr-1.5 h-3.5 w-3.5" />
-                  Word
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => downloadAsPdf(selectedTemplateForOptimized, getFormattedContent())}
-                  className="flex-1"
-                >
-                  <Download className="mr-1.5 h-3.5 w-3.5" />
-                  PDF
-                </Button>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedTemplateForOptimized(null)}
-                className="w-full"
-              >
-                Choose a different template
-              </Button>
-            </>
+            <CVEditor
+              content={optimizedContent}
+              style={selectedTemplateForOptimized.style}
+              templateName={selectedTemplateForOptimized.name}
+              onDownloadTxt={(content) => downloadAsText(selectedTemplateForOptimized, content)}
+              onDownloadWord={(content) => downloadAsWord(selectedTemplateForOptimized, content)}
+              onDownloadPdf={(content) => downloadAsPdf(selectedTemplateForOptimized, content)}
+              onBack={() => setSelectedTemplateForOptimized(null)}
+            />
           )}
         </div>
       )}
