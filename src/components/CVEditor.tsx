@@ -672,12 +672,8 @@ export function CVEditor({ content, style, templateName, onDownloadTxt, onDownlo
         </div>
         
         {mode === "preview" && (
-          <div className="relative bg-gray-100 rounded-lg overflow-hidden">
-            <div className="aspect-[8.5/11] overflow-hidden">
-              <div className="transform scale-[0.5] origin-top-left w-[200%]">
-                <CVPreviewStyled data={cvData} style={style} />
-              </div>
-            </div>
+          <div className="relative bg-white rounded-lg overflow-hidden border shadow-sm max-h-[600px] overflow-y-auto">
+            <CVPreviewStyled data={cvData} style={style} />
           </div>
         )}
         
