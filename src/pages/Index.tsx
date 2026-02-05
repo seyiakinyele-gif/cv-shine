@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileUpload } from "@/components/FileUpload";
+import { CVInput } from "@/components/CVInput";
 import { JobDescriptionInput } from "@/components/JobDescriptionInput";
 import { ResultsDisplay } from "@/components/ResultsDisplay";
 import { ATSTemplates } from "@/components/ATSTemplates";
@@ -23,9 +23,12 @@ interface OptimizationResult {
 }
 
 type View = "optimizer" | "templates";
+type InputMode = "file" | "text";
 
 const Index = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [cvText, setCvText] = useState("");
+  const [inputMode, setInputMode] = useState<InputMode>("file");
   const [jobDescription, setJobDescription] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<OptimizationResult | null>(null);
@@ -40,9 +43,21 @@ const Index = () => {
     });
   };
 
+  const getCvContent = async (): Promise<string> => {
+    if (inputMode === "text") {
+      return cvText;
+    }
+    if (file) {
+      return await readFileContent(file);
+    }
+    return "";
+  };
+
+  const hasValidCv = inputMode === "file" ? !!file : cvText.trim().length > 0;
+
   const handleAnalyze = async () => {
-    if (!file || !jobDescription.trim()) {
-      toast.error("Please upload a CV and enter a job description");
+    if (!hasValidCv || !jobDescription.trim()) {
+      toast.error("Please provide a CV and enter a job description");
       return;
     }
 
@@ -50,7 +65,7 @@ const Index = () => {
     setResult(null);
 
     try {
-      const cvContent = await readFileContent(file);
+      const cvContent = await getCvContent();
 
       const { data, error } = await supabase.functions.invoke("optimize-cv", {
         body: { cvContent, jobDescription },
@@ -58,7 +73,7 @@ const Index = () => {
 
       if (error) {
         console.error("Error:", error);
-        toast.error(error.message || "Failed to analyze CV");
+        toast.error(error.message || "Failed to analyse CV");
         return;
       }
 
@@ -79,6 +94,7 @@ const Index = () => {
 
   const handleReset = () => {
     setFile(null);
+    setCvText("");
     setJobDescription("");
     setResult(null);
   };
@@ -136,14 +152,15 @@ const Index = () => {
 
                 {/* Upload Section */}
                 <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium text-foreground">Your CV</label>
-                    <FileUpload
-                      file={file}
-                      onFileSelect={setFile}
-                      onClear={() => setFile(null)}
-                    />
-                  </div>
+                  <CVInput
+                    file={file}
+                    onFileSelect={setFile}
+                    onFileClear={() => setFile(null)}
+                    cvText={cvText}
+                    onCvTextChange={setCvText}
+                    inputMode={inputMode}
+                    onInputModeChange={setInputMode}
+                  />
                   <JobDescriptionInput
                     value={jobDescription}
                     onChange={setJobDescription}
@@ -155,7 +172,7 @@ const Index = () => {
                   <Button
                     size="lg"
                     onClick={handleAnalyze}
-                    disabled={isAnalyzing || !file || !jobDescription.trim()}
+                    disabled={isAnalyzing || !hasValidCv || !jobDescription.trim()}
                     className="min-w-[200px]"
                   >
                     {isAnalyzing ? (
