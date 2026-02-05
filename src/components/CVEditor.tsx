@@ -31,7 +31,7 @@ interface CVData {
 
 interface CVEditorProps {
   content: string;
-  style: "classic" | "modern" | "executive" | "minimal";
+  style: "classic" | "modern" | "executive" | "minimal" | "academic" | "technical" | "creative" | "healthcare" | "compact" | "elegant";
   templateName: string;
   onDownloadTxt: (content: string) => void;
   onDownloadWord: (content: string) => void;
