@@ -35,24 +35,7 @@ Each question should:
 - Test knowledge of specific terms, tools, concepts, or skills from the job description
 - Have 4 options (A, B, C, D) with only one correct answer
 - Include a brief explanation of why the correct answer is right
-- Be relevant to someone preparing for an interview for this specific role
-
-Return ONLY a valid JSON array with this exact structure (no markdown, no code blocks):
-[
-  {
-    "id": 1,
-    "question": "Question text here?",
-    "options": [
-      {"label": "A", "text": "Option A text"},
-      {"label": "B", "text": "Option B text"},
-      {"label": "C", "text": "Option C text"},
-      {"label": "D", "text": "Option D text"}
-    ],
-    "correctAnswer": "A",
-    "explanation": "Brief explanation of why this is correct",
-    "category": "Category name based on the skill area"
-  }
-]`;
+- Be relevant to someone preparing for an interview for this specific role`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -67,6 +50,47 @@ Return ONLY a valid JSON array with this exact structure (no markdown, no code b
           { role: "user", content: `Generate interview questions based on this job description:\n\n${jobDescription}` },
         ],
         temperature: 0.7,
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "generate_questions",
+              description: "Generate multiple-choice interview questions",
+              parameters: {
+                type: "object",
+                properties: {
+                  questions: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        id: { type: "number" },
+                        question: { type: "string" },
+                        options: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              label: { type: "string" },
+                              text: { type: "string" }
+                            },
+                            required: ["label", "text"]
+                          }
+                        },
+                        correctAnswer: { type: "string" },
+                        explanation: { type: "string" },
+                        category: { type: "string" }
+                      },
+                      required: ["id", "question", "options", "correctAnswer", "explanation", "category"]
+                    }
+                  }
+                },
+                required: ["questions"]
+              }
+            }
+          }
+        ],
+        tool_choice: { type: "function", function: { name: "generate_questions" } }
       }),
     });
 
@@ -92,28 +116,42 @@ Return ONLY a valid JSON array with this exact structure (no markdown, no code b
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-
-    if (!content) {
-      console.error("No content in AI response");
-      return new Response(
-        JSON.stringify({ error: "Failed to generate questions" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Parse the JSON from the response
+    
+    // Extract questions from tool call response
     let questions;
-    try {
-      // Remove any markdown code blocks if present
-      const cleanedContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      questions = JSON.parse(cleanedContent);
-    } catch (parseError) {
-      console.error("Failed to parse AI response:", parseError, content);
-      return new Response(
-        JSON.stringify({ error: "Failed to parse generated questions" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const toolCalls = data.choices?.[0]?.message?.tool_calls;
+    
+    if (toolCalls && toolCalls.length > 0) {
+      try {
+        const args = JSON.parse(toolCalls[0].function.arguments);
+        questions = args.questions;
+      } catch (parseError) {
+        console.error("Failed to parse tool call arguments:", parseError);
+        return new Response(
+          JSON.stringify({ error: "Failed to parse generated questions" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      // Fallback to content parsing if tool calls not present
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) {
+        console.error("No content or tool calls in AI response:", JSON.stringify(data));
+        return new Response(
+          JSON.stringify({ error: "Failed to generate questions" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      try {
+        const cleanedContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        questions = JSON.parse(cleanedContent);
+      } catch (parseError) {
+        console.error("Failed to parse AI response:", parseError);
+        return new Response(
+          JSON.stringify({ error: "Failed to parse generated questions" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Validate structure
