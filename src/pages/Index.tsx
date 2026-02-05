@@ -63,16 +63,35 @@ const Index = () => {
 
       if (error) throw error;
 
-      const jobs: TrackedJob[] = (data || []).map(row => ({
-        id: row.id,
-        company: row.company,
-        position: row.position,
-        status: row.status as TrackedJob["status"],
-        date_applied: row.date_applied,
-        link: row.link || undefined,
-        notes: row.notes || undefined,
-        salary: row.salary || undefined,
-      }));
+      const jobs: TrackedJob[] = (data || []).map(row => {
+        const workflowData = row.workflow_data as {
+          cvContent?: string;
+          jobDescription?: string;
+          result?: any;
+          optimizedCvContent?: string | null;
+          quizComplete?: boolean;
+          starComplete?: boolean;
+        } | null;
+
+        return {
+          id: row.id,
+          company: row.company,
+          position: row.position,
+          status: row.status as TrackedJob["status"],
+          date_applied: row.date_applied,
+          link: row.link || undefined,
+          notes: row.notes || undefined,
+          salary: row.salary || undefined,
+          workflowData: workflowData ? {
+            cvContent: workflowData.cvContent || "",
+            jobDescription: workflowData.jobDescription || "",
+            result: workflowData.result || null,
+            optimizedCvContent: workflowData.optimizedCvContent || null,
+            quizComplete: workflowData.quizComplete || false,
+            starComplete: workflowData.starComplete || false,
+          } : undefined,
+        };
+      });
 
       setTrackedJobs(jobs);
     } catch (error) {
@@ -98,6 +117,7 @@ const Index = () => {
           link: job.link || null,
           notes: job.notes || null,
           salary: job.salary || null,
+          workflow_data: job.workflowData ? JSON.parse(JSON.stringify(job.workflowData)) : null,
         });
 
       if (error) throw error;
@@ -126,6 +146,7 @@ const Index = () => {
           link: updatedJob.link || null,
           notes: updatedJob.notes || null,
           salary: updatedJob.salary || null,
+          workflow_data: updatedJob.workflowData ? JSON.parse(JSON.stringify(updatedJob.workflowData)) : null,
         })
         .eq("id", updatedJob.id);
 
