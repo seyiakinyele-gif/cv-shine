@@ -2,7 +2,7 @@ import { useState } from "react";
 import { CVInput } from "@/components/CVInput";
 import { JobDescriptionInput } from "@/components/JobDescriptionInput";
 import { ResultsDisplay } from "@/components/ResultsDisplay";
-import { ATSTemplates } from "@/components/ATSTemplates";
+import { CVTemplatePreview } from "@/components/CVTemplatePreview";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2, FileText } from "lucide-react";
 import { toast } from "sonner";
@@ -211,7 +211,7 @@ const Index = () => {
             )}
           </>
         ) : (
-          <ATSTemplates />
+          <CVTemplatePreview />
         )}
       </main>
     </div>
