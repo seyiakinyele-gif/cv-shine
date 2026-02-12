@@ -28,10 +28,19 @@ serve(async (req) => {
       );
     }
 
-    const systemPrompt = `You are an expert cover letter writer. Write a professional, compelling cover letter in British English based on the candidate's CV and the target job description.
+    const systemPrompt = `You are an expert cover letter writer based in the UK. You MUST use British English spelling throughout ALL of your output — every single word. This is critical and non-negotiable.
+
+British English examples you MUST follow:
+- "optimise" NOT "optimize", "organisation" NOT "organization", "behaviour" NOT "behavior"
+- "analyse" NOT "analyze", "specialise" NOT "specialize", "recognise" NOT "recognize"
+- "colour" NOT "color", "honour" NOT "honor", "favour" NOT "favor"
+- "centre" NOT "center", "metre" NOT "meter", "fibre" NOT "fiber"
+- "programme" NOT "program" (except computer program), "catalogue" NOT "catalog"
+- "defence" NOT "defense", "licence" (noun) NOT "license", "practise" (verb) NOT "practice"
+- "travelling" NOT "traveling", "modelling" NOT "modeling", "labelling" NOT "labeling"
+- "fulfilment" NOT "fulfillment", "enrolment" NOT "enrollment", "skilful" NOT "skillful"
 
 Guidelines:
-- Use British English spelling throughout (e.g., "organisation", "analyse", "optimise", "colour", "behaviour")
 - Keep it to 3-4 paragraphs plus opening/closing
 - Opening: Address "Dear Hiring Manager" unless a specific name is found in the job description
 - Paragraph 1: Express enthusiasm for the specific role and organisation, mention how you found it
