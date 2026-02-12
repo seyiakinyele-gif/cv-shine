@@ -4,14 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { WorkflowWizard, TrackedJob } from "@/components/WorkflowWizard";
 import { JobTracker } from "@/components/JobTracker";
+import { StandaloneCoverLetter } from "@/components/StandaloneCoverLetter";
 import { InterviewPrep } from "@/components/InterviewPrep";
 import { STARInterviewPrep } from "@/components/STARInterviewPrep";
 import { CVTemplatePreview } from "@/components/CVTemplatePreview";
 import { Button } from "@/components/ui/button";
-import { Sparkles, FileText, BookOpen, Briefcase, Star, Workflow, Loader2, LogOut } from "lucide-react";
+import { Sparkles, FileText, BookOpen, Briefcase, Star, Workflow, Loader2, LogOut, Mail } from "lucide-react";
 import { toast } from "sonner";
 
-type View = "workflow" | "templates" | "quiz" | "star" | "tracker";
+type View = "workflow" | "templates" | "coverletter" | "quiz" | "star" | "tracker";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -234,6 +235,14 @@ const Index = () => {
               <span className="hidden sm:inline">Templates</span>
             </Button>
             <Button
+              variant={currentView === "coverletter" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setCurrentView("coverletter")}
+            >
+              <Mail className="mr-1.5 h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Cover Letter</span>
+            </Button>
+            <Button
               variant={currentView === "quiz" ? "secondary" : "ghost"}
               size="sm"
               onClick={() => setCurrentView("quiz")}
@@ -295,6 +304,9 @@ const Index = () => {
         )}
         {currentView === "templates" && (
           <CVTemplatePreview />
+        )}
+        {currentView === "coverletter" && (
+          <StandaloneCoverLetter />
         )}
         {currentView === "quiz" && (
           <InterviewPrep />
