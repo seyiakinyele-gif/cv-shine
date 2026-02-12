@@ -3,11 +3,12 @@ import { CVInput } from "@/components/CVInput";
 import { JobDescriptionInput } from "@/components/JobDescriptionInput";
 import { ResultsDisplay } from "@/components/ResultsDisplay";
 import { CVTemplatePreview } from "@/components/CVTemplatePreview";
+import { CoverLetter } from "@/components/CoverLetter";
 import { InterviewPrepWizard } from "@/components/InterviewPrepWizard";
 import { STARInterviewPrepWizard } from "@/components/STARInterviewPrepWizard";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Sparkles, Loader2, ChevronRight, ChevronLeft, CheckCircle, FileText, BookOpen, Star, Briefcase, RotateCcw } from "lucide-react";
+import { Sparkles, Loader2, ChevronRight, ChevronLeft, CheckCircle, FileText, BookOpen, Star, Briefcase, RotateCcw, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -40,6 +41,7 @@ export interface TrackedJob {
     jobDescription: string;
     result: OptimizationResult | null;
     optimizedCvContent: string | null;
+    coverLetter: string | null;
     quizComplete: boolean;
     starComplete: boolean;
   };
@@ -51,9 +53,10 @@ const STEPS = [
   { id: 1, name: "Upload CV", icon: FileText },
   { id: 2, name: "Results", icon: Sparkles },
   { id: 3, name: "Template", icon: FileText },
-  { id: 4, name: "Quiz", icon: BookOpen },
-  { id: 5, name: "STAR", icon: Star },
-  { id: 6, name: "Complete", icon: CheckCircle },
+  { id: 4, name: "Cover Letter", icon: Mail },
+  { id: 5, name: "Quiz", icon: BookOpen },
+  { id: 6, name: "STAR", icon: Star },
+  { id: 7, name: "Complete", icon: CheckCircle },
 ];
 
 interface WorkflowWizardProps {
@@ -72,6 +75,7 @@ export const WorkflowWizard = ({ onJobAdded, onJobUpdated, reviewJob, onClearRev
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<OptimizationResult | null>(null);
   const [optimizedCvContent, setOptimizedCvContent] = useState<string | null>(null);
+  const [coverLetter, setCoverLetter] = useState<string | null>(null);
   const [quizComplete, setQuizComplete] = useState(false);
   const [starComplete, setStarComplete] = useState(false);
   const [extractedJobInfo, setExtractedJobInfo] = useState<{ company: string; position: string } | null>(null);
@@ -87,12 +91,13 @@ export const WorkflowWizard = ({ onJobAdded, onJobUpdated, reviewJob, onClearRev
       setJobDescription(reviewJob.workflowData.jobDescription);
       setResult(reviewJob.workflowData.result);
       setOptimizedCvContent(reviewJob.workflowData.optimizedCvContent);
+      setCoverLetter(reviewJob.workflowData.coverLetter || null);
       setQuizComplete(reviewJob.workflowData.quizComplete);
       setStarComplete(reviewJob.workflowData.starComplete);
       setExtractedJobInfo({ company: reviewJob.company, position: reviewJob.position });
       setCurrentJobId(reviewJob.id);
       setCurrentStep(2);
-      setHighestCompletedStep(5);
+      setHighestCompletedStep(6);
     }
   }, [reviewJob]);
 
@@ -196,6 +201,7 @@ export const WorkflowWizard = ({ onJobAdded, onJobUpdated, reviewJob, onClearRev
               jobDescription,
               result: data,
               optimizedCvContent: data.optimizedContent,
+              coverLetter,
               quizComplete,
               starComplete,
             },
@@ -220,6 +226,7 @@ export const WorkflowWizard = ({ onJobAdded, onJobUpdated, reviewJob, onClearRev
             jobDescription,
             result: data,
             optimizedCvContent: data.optimizedContent,
+            coverLetter: null,
             quizComplete: false,
             starComplete: false,
           },
@@ -282,6 +289,7 @@ export const WorkflowWizard = ({ onJobAdded, onJobUpdated, reviewJob, onClearRev
           jobDescription,
           result,
           optimizedCvContent,
+          coverLetter,
           quizComplete,
           starComplete,
         },
@@ -297,6 +305,7 @@ export const WorkflowWizard = ({ onJobAdded, onJobUpdated, reviewJob, onClearRev
     setJobDescription("");
     setResult(null);
     setOptimizedCvContent(null);
+    setCoverLetter(null);
     setQuizComplete(false);
     setStarComplete(false);
     setExtractedJobInfo(null);
@@ -457,7 +466,7 @@ export const WorkflowWizard = ({ onJobAdded, onJobUpdated, reviewJob, onClearRev
                 Back
               </Button>
               <Button onClick={handleNext}>
-                Continue to Quiz
+                Continue to Cover Letter
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
@@ -465,6 +474,27 @@ export const WorkflowWizard = ({ onJobAdded, onJobUpdated, reviewJob, onClearRev
         )}
 
         {currentStep === 4 && (
+          <div className="animate-fade-in space-y-6">
+            <CoverLetter
+              cvContent={optimizedCvContent || cvText}
+              jobDescription={jobDescription}
+              coverLetter={coverLetter}
+              onCoverLetterGenerated={(letter) => setCoverLetter(letter)}
+            />
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={handleBack}>
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+              <Button onClick={handleNext}>
+                Continue to Quiz
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {currentStep === 5 && (
           <div className="animate-fade-in space-y-6">
             <InterviewPrepWizard
               jobDescription={jobDescription}
@@ -483,7 +513,7 @@ export const WorkflowWizard = ({ onJobAdded, onJobUpdated, reviewJob, onClearRev
           </div>
         )}
 
-        {currentStep === 5 && (
+        {currentStep === 6 && (
           <div className="animate-fade-in space-y-6">
             <STARInterviewPrepWizard
               jobDescription={jobDescription}
@@ -502,7 +532,7 @@ export const WorkflowWizard = ({ onJobAdded, onJobUpdated, reviewJob, onClearRev
           </div>
         )}
 
-        {currentStep === 6 && (
+        {currentStep === 7 && (
           <div className="animate-fade-in space-y-8 text-center py-12">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-success/10">
               <CheckCircle className="h-10 w-10 text-success" />

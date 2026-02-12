@@ -83,6 +83,7 @@ const Index = () => {
               jobDescription: (workflowData.jobDescription as string) || "",
               result: workflowData.result as any || null,
               optimizedCvContent: (workflowData.optimizedCvContent as string) || null,
+              coverLetter: (workflowData.coverLetter as string) || null,
               quizComplete: (workflowData.quizComplete as boolean) || false,
               starComplete: (workflowData.starComplete as boolean) || false,
             } : undefined,
